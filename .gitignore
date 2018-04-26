@@ -1,0 +1,10 @@
+/MAIN/.vs
+/MAIN/__vm
+/MAIN/MAIN.sln
+/MAIN/MAIN.vcxproj
+/MAIN/MAIN.vcxproj.filters
+/MAIN/Debug
+/MAIN/libraries
+
+*.pdb
+
