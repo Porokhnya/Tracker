@@ -1,4 +1,5 @@
 #include "DS3231.h"
+#include "CONFIG.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
 char DS3231Clock::workBuff[12] = {0};
 DS3231Clock RealtimeClock;
@@ -130,7 +131,422 @@ long DS3231Time::time2long(uint16_t days, uint8_t hours, uint8_t minutes, uint8_
 //--------------------------------------------------------------------------------------------------------------------------------------
 DS3231Clock::DS3231Clock()
 {
-  wire = &Wire;
+  wire = &RTC_WIRE;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+RTCAlarmTime DS3231Clock::getAlarm1(void)
+{
+    uint8_t values[4];
+    RTCAlarmTime a;
+
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(DS3231_REG_ALARM_1);
+    #else
+        wire->send(DS3231_REG_ALARM_1);
+    #endif
+    wire->endTransmission();
+
+    wire->requestFrom(DS3231Address, 4);
+
+    while(!wire->available()) {};
+
+    for (int i = 3; i >= 0; i--)
+    {
+        #if ARDUINO >= 100
+            values[i] = bcd2dec(wire->read() & 0b01111111);
+        #else
+            values[i] = bcd2dec(wire->receive() & 0b01111111);
+        #endif
+    }
+
+    wire->endTransmission();
+
+    a.day = values[0];
+    a.hour = values[1];
+    a.minute = values[2];
+    a.second = values[3];
+
+    return a;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+DS3231_alarm1_t DS3231Clock::getAlarmType1(void)
+{
+    uint8_t values[4];
+    uint8_t mode = 0;
+
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(DS3231_REG_ALARM_1);
+    #else
+        wire->send(DS3231_REG_ALARM_1);
+    #endif
+    wire->endTransmission();
+
+    wire->requestFrom(DS3231Address, 4);
+
+    while(!wire->available()) {};
+
+    for (int i = 3; i >= 0; i--)
+    {
+        #if ARDUINO >= 100
+            values[i] = bcd2dec(wire->read());
+        #else
+            values[i] = bcd2dec(wire->receive());
+        #endif
+    }
+
+    wire->endTransmission();
+
+    mode |= ((values[3] & 0b01000000) >> 6);
+    mode |= ((values[2] & 0b01000000) >> 5);
+    mode |= ((values[1] & 0b01000000) >> 4);
+    mode |= ((values[0] & 0b01000000) >> 3);
+    mode |= ((values[0] & 0b00100000) >> 1);
+
+    return (DS3231_alarm1_t)mode;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::setAlarm1(uint8_t dydw, uint8_t hour, uint8_t minute, uint8_t second, DS3231_alarm1_t mode, bool armed)
+{
+    second = dec2bcd(second);
+    minute = dec2bcd(minute);
+    hour = dec2bcd(hour);
+    dydw = dec2bcd(dydw);
+
+    switch(mode)
+    {
+        case DS3231_EVERY_SECOND:
+            second |= 0b10000000;
+            minute |= 0b10000000;
+            hour |= 0b10000000;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_S:
+            second &= 0b01111111;
+            minute |= 0b10000000;
+            hour |= 0b10000000;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_M_S:
+            second &= 0b01111111;
+            minute &= 0b01111111;
+            hour |= 0b10000000;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_H_M_S:
+            second &= 0b01111111;
+            minute &= 0b01111111;
+            hour &= 0b01111111;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_DT_H_M_S:
+            second &= 0b01111111;
+            minute &= 0b01111111;
+            hour &= 0b01111111;
+            dydw &= 0b01111111;
+            break;
+
+        case DS3231_MATCH_DY_H_M_S:
+            second &= 0b01111111;
+            minute &= 0b01111111;
+            hour &= 0b01111111;
+            dydw &= 0b01111111;
+            dydw |= 0b01000000;
+            break;
+    }
+
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(DS3231_REG_ALARM_1);
+        wire->write(second);
+        wire->write(minute);
+        wire->write(hour);
+        wire->write(dydw);
+    #else
+        wire->send(DS3231_REG_ALARM_1);
+        wire->send(second);
+        wire->send(minute);
+        wire->send(hour);
+        wire->send(dydw);
+    #endif
+
+    wire->endTransmission();
+
+    armAlarm1(armed);
+
+    clearAlarm1();
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+bool DS3231Clock::isAlarm1(bool clear)
+{
+    uint8_t alarm;
+
+    alarm = readRegister8(DS3231_REG_STATUS);
+    alarm &= 0b00000001;
+
+    if (alarm && clear)
+    {
+        clearAlarm1();
+    }
+
+    return alarm;
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::armAlarm1(bool armed)
+{
+    uint8_t value;
+    value = readRegister8(DS3231_REG_CONTROL);
+
+    if (armed)
+    {
+        value |= 0b00000001;
+    } else
+    {
+        value &= 0b11111110;
+    }
+
+    writeRegister8(DS3231_REG_CONTROL, value);
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+bool DS3231Clock::isArmed1(void)
+{
+    uint8_t value;
+    value = readRegister8(DS3231_REG_CONTROL);
+    value &= 0b00000001;
+    return value;
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::clearAlarm1(void)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_STATUS);
+    value &= 0b11111110;
+
+    writeRegister8(DS3231_REG_STATUS, value);
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+RTCAlarmTime DS3231Clock::getAlarm2(void)
+{
+    uint8_t values[3];
+    RTCAlarmTime a;
+
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(DS3231_REG_ALARM_2);
+    #else
+        wire->send(DS3231_REG_ALARM_2);
+    #endif
+    wire->endTransmission();
+
+    wire->requestFrom(DS3231Address, 3);
+
+    while(!wire->available()) {};
+
+    for (int i = 2; i >= 0; i--)
+    {
+        #if ARDUINO >= 100
+            values[i] = bcd2dec(wire->read() & 0b01111111);
+        #else
+            values[i] = bcd2dec(wire->receive() & 0b01111111);
+        #endif
+    }
+
+    wire->endTransmission();
+
+    a.day = values[0];
+    a.hour = values[1];
+    a.minute = values[2];
+    a.second = 0;
+
+    return a;
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+DS3231_alarm2_t DS3231Clock::getAlarmType2(void)
+{
+    uint8_t values[3];
+    uint8_t mode = 0;
+
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(DS3231_REG_ALARM_2);
+    #else
+        wire->send(DS3231_REG_ALARM_2);
+    #endif
+    wire->endTransmission();
+
+    wire->requestFrom(DS3231Address, 3);
+
+    while(!wire->available()) {};
+
+    for (int i = 2; i >= 0; i--)
+    {
+        #if ARDUINO >= 100
+            values[i] = bcd2dec(wire->read());
+        #else
+            values[i] = bcd2dec(wire->receive());
+        #endif
+    }
+
+    wire->endTransmission();
+
+    mode |= ((values[2] & 0b01000000) >> 5);
+    mode |= ((values[1] & 0b01000000) >> 4);
+    mode |= ((values[0] & 0b01000000) >> 3);
+    mode |= ((values[0] & 0b00100000) >> 1);
+
+    return (DS3231_alarm2_t)mode;
+}
+//-------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::setAlarm2(uint8_t dydw, uint8_t hour, uint8_t minute, DS3231_alarm2_t mode, bool armed)
+{
+    minute = dec2bcd(minute);
+    hour = dec2bcd(hour);
+    dydw = dec2bcd(dydw);
+
+    switch(mode)
+    {
+        case DS3231_EVERY_MINUTE:
+            minute |= 0b10000000;
+            hour |= 0b10000000;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_M:
+            minute &= 0b01111111;
+            hour |= 0b10000000;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_H_M:
+            minute &= 0b01111111;
+            hour &= 0b01111111;
+            dydw |= 0b10000000;
+            break;
+
+        case DS3231_MATCH_DT_H_M:
+            minute &= 0b01111111;
+            hour &= 0b01111111;
+            dydw &= 0b01111111;
+            break;
+
+        case DS3231_MATCH_DY_H_M:
+            minute &= 0b01111111;
+            hour &= 0b01111111;
+            dydw &= 0b01111111;
+            dydw |= 0b01000000;
+            break;
+    }
+
+   wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(DS3231_REG_ALARM_2);
+        wire->write(minute);
+        wire->write(hour);
+        wire->write(dydw);
+    #else
+        wire->send(DS3231_REG_ALARM_2);
+        wire->send(minute);
+        wire->send(hour);
+        wire->send(dydw);
+    #endif
+
+    wire->endTransmission();
+
+    armAlarm2(armed);
+
+    clearAlarm2();
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::armAlarm2(bool armed)
+{
+    uint8_t value;
+    value = readRegister8(DS3231_REG_CONTROL);
+
+    if (armed)
+    {
+        value |= 0b00000010;
+    } else
+    {
+        value &= 0b11111101;
+    }
+
+    writeRegister8(DS3231_REG_CONTROL, value);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool DS3231Clock::isArmed2(void)
+{
+    uint8_t value;
+    value = readRegister8(DS3231_REG_CONTROL);
+    value &= 0b00000010;
+    value >>= 1;
+    return value;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::clearAlarm2(void)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_STATUS);
+    value &= 0b11111101;
+
+    writeRegister8(DS3231_REG_STATUS, value);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool DS3231Clock::isAlarm2(bool clear)
+{
+    uint8_t alarm;
+
+    alarm = readRegister8(DS3231_REG_STATUS);
+    alarm &= 0b00000010;
+
+    if (alarm && clear)
+    {
+        clearAlarm2();
+    }
+
+    return alarm;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::writeRegister8(uint8_t reg, uint8_t value)
+{
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(reg);
+        wire->write(value);
+    #else
+        wire->send(reg);
+        wire->send(value);
+    #endif
+    wire->endTransmission();
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+uint8_t DS3231Clock::readRegister8(uint8_t reg)
+{
+    uint8_t value;
+    wire->beginTransmission(DS3231Address);
+    #if ARDUINO >= 100
+        wire->write(reg);
+    #else
+        wire->send(reg);
+    #endif
+    wire->endTransmission();
+
+    wire->requestFrom(DS3231Address, 1);
+    while(!wire->available()) {};
+    #if ARDUINO >= 100
+        value = wire->read();
+    #else
+        value = wire->receive();
+    #endif
+    wire->endTransmission();
+
+    return value;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 uint8_t DS3231Clock::dec2bcd(uint8_t val)
@@ -180,7 +596,7 @@ DS3231Temperature DS3231Clock::getTemperature()
    } rtcTemp;
      
   wire->beginTransmission(DS3231Address);
-  wire->write(0x11);
+  wire->write(DS3231_REG_TEMPERATURE);
   if(wire->endTransmission() != 0) // ошибка
     return res;
 
@@ -199,6 +615,78 @@ DS3231Temperature DS3231Clock::getTemperature()
   return res;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::enableOutput(bool enabled)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_CONTROL);
+
+    value &= 0b11111011;
+    value |= (!enabled << 2);
+
+    writeRegister8(DS3231_REG_CONTROL, value);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool DS3231Clock::isOutput(void)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_CONTROL);
+
+    value &= 0b00000100;
+    value >>= 2;
+
+    return !value;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::setOutput(DS3231_sqw_t mode)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_CONTROL);
+
+    value &= 0b11100111;
+    value |= (mode << 3);
+
+    writeRegister8(DS3231_REG_CONTROL, value);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+DS3231_sqw_t DS3231Clock::getOutput(void)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_CONTROL);
+
+    value &= 0b00011000;
+    value >>= 3;
+
+    return (DS3231_sqw_t)value;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void DS3231Clock::enable32kHz(bool enabled)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_STATUS);
+
+    value &= 0b11110111;
+    value |= (enabled << 3);
+
+    writeRegister8(DS3231_REG_STATUS, value);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool DS3231Clock::is32kHz(void)
+{
+    uint8_t value;
+
+    value = readRegister8(DS3231_REG_STATUS);
+
+    value &= 0b00001000;
+    value >>= 3;
+
+    return value;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 DS3231Time DS3231Clock::getTime()
 {
   static DS3231Time t = {0};
@@ -212,7 +700,7 @@ DS3231Time DS3231Clock::getTime()
     timeMillis = millis();
     
     wire->beginTransmission(DS3231Address);
-    wire->write(0); // говорим, что мы собираемся читать с регистра 0
+    wire->write(DS3231_REG_TIME); // говорим, что мы собираемся читать с регистра 0
     
     if(wire->endTransmission() != 0) // ошибка
       return t;
