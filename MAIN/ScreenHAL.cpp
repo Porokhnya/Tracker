@@ -70,13 +70,15 @@ void HalDC::addScreen(AbstractHALScreen* screen)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::initHAL()
 {
-  //TODO: Тут инициализация/переинициализация дисплея
+  //Тут инициализация/переинициализация дисплея
+  halDCDescriptor->InitLCD();
+  halDCDescriptor->clrScr();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setup()
 {
-  //TODO: ТУТ создание библиотеки для экрана!!!
-  halDCDescriptor = NULL;
+  //создание библиотеки для экрана
+  halDCDescriptor = new HalDCDescriptor(LCD_SCK_PIN, LCD_MOSI_PIN, LCD_DC_PIN, LCD_RST_PIN, LCD_CS_PIN);
 
 
   // инициализируем дисплей
@@ -99,9 +101,8 @@ void HalDC::update()
     screen->setActive(true);
     screen->onActivate();
 
-    //TODO: Тут очистка экрана!!!
-    //tftDC->setBackColor(TFT_BACK_COLOR);
-    //tftDC->fillScr(TFT_BACK_COLOR); // clear screen first
+    //Тут очистка экрана
+     halDCDescriptor->clrScr();
 
     screen->update(this);
     screen->draw(this);
