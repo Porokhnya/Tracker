@@ -19,10 +19,10 @@ class MainScreen : public AbstractHALScreen
 
 protected:
   
-    virtual void doSetup(HalDC* dc);
-    virtual void doUpdate(HalDC* dc);
-    virtual void doDraw(HalDC* dc);
-    virtual void onButtonPressed(HalDC* dc, int pressedButton);
+    virtual void doSetup(HalDC* hal);
+    virtual void doUpdate(HalDC* hal);
+    virtual void doDraw(HalDC* hal);
+    virtual void onButtonPressed(HalDC* hal, int pressedButton);
 
 private:
     MainScreen();

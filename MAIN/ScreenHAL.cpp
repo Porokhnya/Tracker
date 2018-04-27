@@ -10,13 +10,13 @@ AbstractHALScreen::~AbstractHALScreen()
 {
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void AbstractHALScreen::setup(HalDC* dc)
+void AbstractHALScreen::setup(HalDC* hal)
 {
   // тут общие для всех классов настройки
-  doSetup(dc); 
+  doSetup(hal); 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void AbstractHALScreen::update(HalDC* dc)
+void AbstractHALScreen::update(HalDC* hal)
 {
   if(isActive())
   {
@@ -24,20 +24,20 @@ void AbstractHALScreen::update(HalDC* dc)
   
   if(pressedButton != -1)
   {
-    dc->notifyAction(this);
-    onButtonPressed(dc, pressedButton);
+    hal->notifyAction(this);
+    onButtonPressed(hal, pressedButton);
   }
 
     if(isActive())
-      doUpdate(dc);
+      doUpdate(hal);
   }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void AbstractHALScreen::draw(HalDC* dc)
+void AbstractHALScreen::draw(HalDC* hal)
 {
   if(isActive())
   {
-    doDraw(dc);
+    doDraw(hal);
     
     if(isActive())
     {
@@ -68,10 +68,21 @@ void HalDC::addScreen(AbstractHALScreen* screen)
   screens.push_back(screen);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::initHAL()
+{
+  //Тут инициализация/переинициализация дисплея
+  halDCDescriptor->InitLCD();
+  halDCDescriptor->clrScr();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setup()
 {
-  //TODO: ТУТ создание библиотеки для экрана!!!
-  halDCDescriptor = NULL;
+  //создание библиотеки для экрана
+  halDCDescriptor = new HalDCDescriptor(LCD_SCK_PIN, LCD_MOSI_PIN, LCD_DC_PIN, LCD_RST_PIN, LCD_CS_PIN);
+
+
+  // инициализируем дисплей
+  initHAL();
   
   
 }
@@ -90,9 +101,8 @@ void HalDC::update()
     screen->setActive(true);
     screen->onActivate();
 
-    //TODO: Тут очистка экрана!!!
-    //tftDC->setBackColor(TFT_BACK_COLOR);
-    //tftDC->fillScr(TFT_BACK_COLOR); // clear screen first
+    //Тут очистка экрана
+     halDCDescriptor->clrScr();
 
     screen->update(this);
     screen->draw(this);
