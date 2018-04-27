@@ -56,6 +56,7 @@ public:
 
   void setup();
   void update();
+  void initHAL();
 
   void addScreen(AbstractHALScreen* screen);
 
