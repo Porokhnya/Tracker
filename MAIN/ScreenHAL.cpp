@@ -10,13 +10,13 @@ AbstractHALScreen::~AbstractHALScreen()
 {
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void AbstractHALScreen::setup(HalDC* dc)
+void AbstractHALScreen::setup(HalDC* hal)
 {
   // тут общие для всех классов настройки
-  doSetup(dc); 
+  doSetup(hal); 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void AbstractHALScreen::update(HalDC* dc)
+void AbstractHALScreen::update(HalDC* hal)
 {
   if(isActive())
   {
@@ -24,20 +24,20 @@ void AbstractHALScreen::update(HalDC* dc)
   
   if(pressedButton != -1)
   {
-    dc->notifyAction(this);
-    onButtonPressed(dc, pressedButton);
+    hal->notifyAction(this);
+    onButtonPressed(hal, pressedButton);
   }
 
     if(isActive())
-      doUpdate(dc);
+      doUpdate(hal);
   }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void AbstractHALScreen::draw(HalDC* dc)
+void AbstractHALScreen::draw(HalDC* hal)
 {
   if(isActive())
   {
-    doDraw(dc);
+    doDraw(hal);
     
     if(isActive())
     {

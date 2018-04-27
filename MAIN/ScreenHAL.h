@@ -15,9 +15,9 @@ class AbstractHALScreen
 {
   public:
 
-    void setup(HalDC* dc);
-    void update(HalDC* dc);
-    void draw(HalDC* dc);
+    void setup(HalDC* hal);
+    void update(HalDC* hal);
+    void draw(HalDC* hal);
 
     const char* getName() {return screenName;}
     bool isActive() {return isActiveScreen; }
@@ -35,10 +35,10 @@ class AbstractHALScreen
   protected:
 
     
-    virtual void doSetup(HalDC* dc) = 0;
-    virtual void doUpdate(HalDC* dc) = 0;
-    virtual void doDraw(HalDC* dc) = 0;
-    virtual void onButtonPressed(HalDC* dc,int pressedButton) = 0;
+    virtual void doSetup(HalDC* hal) = 0;
+    virtual void doUpdate(HalDC* hal) = 0;
+    virtual void doDraw(HalDC* hal) = 0;
+    virtual void onButtonPressed(HalDC* hal,int pressedButton) = 0;
 
     private:
       const char* screenName;
