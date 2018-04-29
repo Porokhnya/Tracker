@@ -1,40 +1,26 @@
 #pragma once
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#include "AT24CX.h"
-#include "DS3231.h"
-#include "DS18B20.h"
+#include "FontUtils.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-typedef struct
+#if defined (__arm__)
+  #define READ_FONT_BYTE(x) font[x]  
+#elif defined(__AVR__)  
+  #define READ_FONT_BYTE(x) pgm_read_byte(&(font[x]))  
+#endif
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint8_t FontUtils::getFontWidth(uint8_t* font)
 {
-  int raw;
-  float voltage;
-  
-} VoltageData;
+		if(!font)
+			return 0;
+		
+		return READ_FONT_BYTE(0);
+}
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-class SettingsClass 
+uint8_t FontUtils::getFontHeight(uint8_t* font)
 {
-  public:
-
-    SettingsClass();
-
-    void begin();
-    void update();
-
-    DS18B20Temperature getDS18B20Temperature() { return dsTemp; }
-    uint16_t getAnalogSensorValue() { return analogSensorValue; }
-
-  
-    
-  private:
-
-    AT24C64* eeprom;
-    DS3231Temperature coreTemp;
-    DS18B20 dsSensor;
-    DS18B20Temperature dsTemp;
-    uint32_t sensorsUpdateTimer;
-    uint16_t analogSensorValue;
-  
-};
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-extern SettingsClass Settings;
+		if(!font)
+			return 0;
+		
+		return READ_FONT_BYTE(1);	
+}
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
