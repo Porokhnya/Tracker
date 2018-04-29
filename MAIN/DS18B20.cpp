@@ -41,13 +41,12 @@ bool DS18B20::readTemperature(DS18B20Temperature& result,DSSensorType type)
   if(!pin)
     return false;
 
-
   OneWire ow(pin);
 
   if(!ow.reset()) // нет датчика
     return false;
 
-  byte data[9];
+  byte data[9] = {0};
    
   ow.write(0xCC); // пофиг на адреса (SKIP ROM)
   ow.write(0x44); // запускаем преобразование
@@ -63,17 +62,18 @@ bool DS18B20::readTemperature(DS18B20Temperature& result,DSSensorType type)
  if (OneWire::crc8( data, 8) != data[8]) // проверяем контрольную сумму
       return false;
   
-  int loByte = data[0];
-  int hiByte = data[1];
+  int16_t loByte = data[0];
+  int16_t hiByte = data[1];
 
-  int temp = (hiByte << 8) + loByte;
+  int16_t temp = (hiByte << 8) + loByte;
   
-  result.Negative = (temp & 0x8000);
+  bool negative = (temp & 0x8000);
   
-  if(result.Negative)
+  if(negative)
     temp = (temp ^ 0xFFFF) + 1;
 
-  int tc_100 = 0;
+  int16_t tc_100 = 0;
+  
   switch(type)
   {
     case DS18B20_SENSOR:
@@ -86,7 +86,7 @@ bool DS18B20::readTemperature(DS18B20Temperature& result,DSSensorType type)
   }
    
 
-  result.Value = abs(tc_100/100);
+  result.Value = tc_100/100;
   result.Fract = abs(tc_100 % 100);
   
   if(result.Value < -55 || result.Value > 125)

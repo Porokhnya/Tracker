@@ -93,9 +93,7 @@ void MainScreen::drawTemperature(HalDC* hal)
   }
   else // есть температура
   {
-    if(temp.Negative)
-      tempString += "-";
-
+    
     tempString += temp.Value;
     tempString += ".";
 
