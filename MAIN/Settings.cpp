@@ -7,15 +7,32 @@ SettingsClass Settings;
 SettingsClass::SettingsClass()
 {
   eeprom = NULL;
+  dsTemp.Value = NO_TEMPERATURE_DATA;
+  analogSensorValue = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
   eeprom = new AT24C64();
+  dsTemp.Value = NO_TEMPERATURE_DATA;
+  analogSensorValue = 0;
+
+  dsSensor.begin(DS18B20_PIN);
+  dsSensor.setResolution(temp12bit);
+
+  sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
+  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::update()
 {
+  if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
+  {
+    sensorsUpdateTimer = millis();
+    dsSensor.readTemperature(dsTemp,DS18B20_SENSOR);
+
+    analogSensorValue = analogRead(ANALOG_SENSOR_PIN);
+  }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 /*

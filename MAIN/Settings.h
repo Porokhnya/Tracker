@@ -2,6 +2,7 @@
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #include "AT24CX.h"
 #include "DS3231.h"
+#include "DS18B20.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef struct
 {
@@ -19,12 +20,19 @@ class SettingsClass
     void begin();
     void update();
 
+    DS18B20Temperature getDS18B20Temperature() { return dsTemp; }
+    uint16_t getAnalogSensorValue() { return analogSensorValue; }
+
   
     
   private:
 
     AT24C64* eeprom;
     DS3231Temperature coreTemp;
+    DS18B20 dsSensor;
+    DS18B20Temperature dsTemp;
+    uint32_t sensorsUpdateTimer;
+    uint16_t analogSensorValue;
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
