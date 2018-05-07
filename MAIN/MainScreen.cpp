@@ -2,12 +2,15 @@
 #include "MainScreen.h"
 #include "DS3231.h"
 #include "CONFIG.h"
+#include "Settings.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 MainScreen* mainScreen = NULL;        
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 MainScreen::MainScreen() : AbstractHALScreen("Main")
 {
   mainScreen = this;
+  adcValue = 0;
+  memset(&temp,0,sizeof(DS18B20Temperature));
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::onDeactivate()
@@ -29,17 +32,89 @@ void MainScreen::doSetup(HalDC* hal)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doUpdate(HalDC* hal)
 {
+  if(!isActive())
+    return;
+    
 	// обновление экрана
+  static uint32_t tempUpdateTimer = 0;
+  if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
+  {
+    tempUpdateTimer = millis();
+    
+    DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
+    
+    if(memcmp(&thisTemp,&temp,sizeof(DS18B20Temperature)))
+    {
+      memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));
+      drawTemperature(hal);
+    }
+
+    uint16_t thisADCVal = Settings.getAnalogSensorValue();
+    if(thisADCVal != adcValue)
+    {
+      adcValue = thisADCVal;
+      drawADC(hal);
+    }
+    
+  } // if(millis() - ....
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MainScreen::doDraw(HalDC* hal)
+void MainScreen::drawADC(HalDC* hal)
 {
   HalDCDescriptor* nokia = hal->getDC();
-  // отрисовка экрана
+  
+  // отрисовка показаний ADC
   nokia->setFont(SmallFont);
-  nokia->print("Hello",0,0);
+
+  uint8_t fontHeight = FontUtils::getFontHeight(SmallFont);
+  
+  String adcString = F("ADC: ");
+  adcString += adcValue;
+
+  nokia->print(adcString.c_str(),0,fontHeight + 2); 
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MainScreen::drawTemperature(HalDC* hal)
+{
+  HalDCDescriptor* nokia = hal->getDC();
+  
+  // отрисовка температуры
+  nokia->setFont(SmallFont);
+
+
+  // рисуем температуру
+  String tempString = F("DS18B20: ");
+  
+  if(temp.Value == NO_TEMPERATURE_DATA) // нет температуры
+  {
+    tempString += F("<no data>");
+  }
+  else // есть температура
+  {
     
+    tempString += temp.Value;
+    tempString += ".";
+
+    if(temp.Fract < 10)
+      tempString += '0';
+
+    tempString += temp.Fract;
+
+    nokia->print(tempString.c_str(),0,0);  
+  }
+  
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MainScreen::doDraw(HalDC* hal)
+{
+  temp = Settings.getDS18B20Temperature();
+  drawTemperature(hal);
+
+   adcValue = Settings.getAnalogSensorValue();
+   drawADC(hal);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::onButtonPressed(HalDC* hal, int pressedButton)
