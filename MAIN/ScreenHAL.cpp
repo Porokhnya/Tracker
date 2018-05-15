@@ -85,7 +85,7 @@ void HalDC::setup()
 {
   //создание библиотеки для экрана
   //halDCDescriptor = new HalDCDescriptor(LCD_SCK_PIN, LCD_MOSI_PIN, LCD_DC_PIN, LCD_RST_PIN, LCD_CS_PIN);
-   halDCDescriptor = new Adafruit_PCD8544(DC_PIN, CS_PIN, RST_PIN);
+   halDCDescriptor = new HalDCDescriptor(DC_PIN, CS_PIN, RST_PIN);
 
   // инициализируем дисплей
   initHAL();
