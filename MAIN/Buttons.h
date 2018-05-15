@@ -11,9 +11,6 @@ class ButtonsList
     void update();
 
     Button redButton;
-    Button blue1Button;
-    Button blue2Button;
-    Button yellowButton;
 
 private:
 
