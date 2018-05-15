@@ -63,6 +63,26 @@ void MainScreen::doUpdate(HalDC* hal)
 void MainScreen::drawADC(HalDC* hal)
 {  
   // отрисовка показаний ADC
+  hal->clearScreen(WHITE); 
+  hal->setTextColor(WHITE,BLACK);
+  hal->setTextSize(1);
+  hal->setCursor(0,0);
+
+
+  hal->println(F("Строка1"));
+  hal->println(F("Вторая"));
+  hal->println(F("И ещё"));
+
+/*
+  hal->println(F("АБВГДЕЖЗИЙКЛМНОП"));
+  hal->println(F("РСТУФХЦЧШЩЪЫЬЭЮЯ"));
+  hal->println(F("абвгдежзийклмноп"));
+  hal->println(F("рстуфхцчшщъыьэюя"));
+  hal->println(F("Ёё123ABCabc!@#\xBC\xBD"));
+  hal->println(F("10\x83 10\x8A\x82 10\x81\x80 2\x85"));
+*/
+  hal->display();  
+  
   /*
   nokia->setFont(SmallFont);
 

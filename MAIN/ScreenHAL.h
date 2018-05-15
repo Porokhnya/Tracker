@@ -90,15 +90,23 @@ public:
 
   void setCursor(uint16_t x, uint16_t y);
   void print(const char* str);
+  void print(const String& str) { print(str.c_str()); }
+  void println(const char* str);
+  void println(const String& str) {println(str.c_str()); }
+  void display();
   void setFont(FONT_TYPE* font);
   void clearScreen(COLORTYPE color = 0);
   void setTextColor(COLORTYPE color, COLORTYPE bgColor);
+  void setTextSize(uint8_t sz);
 
   uint16_t getFontWidth(FONT_TYPE* font);
   uint16_t getFontHeight(FONT_TYPE* font);
   
 
 private:
+
+
+  String utf8rus(const char* source);
 
   AbstractHALScreen* requestedToActiveScreen;
   int requestedToActiveScreenIndex;
