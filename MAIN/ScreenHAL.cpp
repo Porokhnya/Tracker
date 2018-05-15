@@ -54,6 +54,9 @@ HalDC::HalDC()
   requestedToActiveScreen = NULL;
   requestedToActiveScreenIndex = -1;
   on_action = NULL;
+  halDCDescriptor = NULL;
+  cursorX = cursorY = 0;
+  curFont = NULL;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::notifyAction(AbstractHALScreen* screen)
@@ -71,15 +74,18 @@ void HalDC::addScreen(AbstractHALScreen* screen)
 void HalDC::initHAL()
 {
   //Тут инициализация/переинициализация дисплея
-  halDCDescriptor->InitLCD();
-  halDCDescriptor->clrScr();
+  //halDCDescriptor->InitLCD();
+  //halDCDescriptor->clrScr();
+
+  halDCDescriptor->begin();
+  halDCDescriptor->display();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setup()
 {
   //создание библиотеки для экрана
-  halDCDescriptor = new HalDCDescriptor(LCD_SCK_PIN, LCD_MOSI_PIN, LCD_DC_PIN, LCD_RST_PIN, LCD_CS_PIN);
-
+  //halDCDescriptor = new HalDCDescriptor(LCD_SCK_PIN, LCD_MOSI_PIN, LCD_DC_PIN, LCD_RST_PIN, LCD_CS_PIN);
+   halDCDescriptor = new Adafruit_PCD8544(DC_PIN, CS_PIN, RST_PIN);
 
   // инициализируем дисплей
   initHAL();
@@ -102,7 +108,7 @@ void HalDC::update()
     screen->onActivate();
 
     //Тут очистка экрана
-     halDCDescriptor->clrScr();
+     clearScreen(BGCOLOR);
 
     screen->update(this);
     screen->draw(this);
@@ -180,6 +186,78 @@ void HalDC::switchToScreen(const char* screenName)
     }
   }
 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::setCursor(uint16_t x, uint16_t y)
+{
+  cursorX = x;
+  cursorY = y;
+  halDCDescriptor->setCursor(x,y);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::print(const char* str)
+{
+  halDCDescriptor->print(str);
+  halDCDescriptor->display();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::setFont(FONT_TYPE* font)
+{
+ curFont = font;
+ halDCDescriptor->setFont(font); 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::clearScreen(COLORTYPE color)
+{
+  halDCDescriptor->clearDisplay();
+  halDCDescriptor->display();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::setTextColor(COLORTYPE color, COLORTYPE bgColor)
+{
+ halDCDescriptor->setTextColor(color, bgColor);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t HalDC::getFontWidth(FONT_TYPE* font)
+{
+  /*
+    if(!font)
+      return 0;
+    
+    return READ_FONT_BYTE(0);
+   */
+
+  halDCDescriptor->setFont(font);
+
+  int16_t  x1, y1;
+  uint16_t w, h;
+ 
+  halDCDescriptor->getTextBounds("W", 0, 0, &x1, &y1, &w, &h);
+  
+  halDCDescriptor->setFont(curFont);
+
+  return w;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t HalDC::getFontHeight(FONT_TYPE* font)
+{
+  /*
+    if(!font)
+      return 0;
+    
+    return READ_FONT_BYTE(1); 
+    */
+
+  halDCDescriptor->setFont(font);
+
+  int16_t  x1, y1;
+  uint16_t w, h;
+ 
+  halDCDescriptor->getTextBounds("W", 0, 0, &x1, &y1, &w, &h);
+  
+  halDCDescriptor->setFont(curFont);
+
+  return h;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 HalDC Screen;

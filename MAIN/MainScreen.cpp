@@ -61,10 +61,9 @@ void MainScreen::doUpdate(HalDC* hal)
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawADC(HalDC* hal)
-{
-  HalDCDescriptor* nokia = hal->getDC();
-  
+{  
   // отрисовка показаний ADC
+  /*
   nokia->setFont(SmallFont);
 
   uint8_t fontHeight = FontUtils::getFontHeight(SmallFont);
@@ -73,11 +72,12 @@ void MainScreen::drawADC(HalDC* hal)
   adcString += adcValue;
 
   nokia->print(adcString.c_str(),0,fontHeight + 2); 
-  
+  */
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTemperature(HalDC* hal)
 {
+  /*
   HalDCDescriptor* nokia = hal->getDC();
   
   // отрисовка температуры
@@ -104,7 +104,7 @@ void MainScreen::drawTemperature(HalDC* hal)
 
     nokia->print(tempString.c_str(),0,0);  
   }
-  
+  */
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
