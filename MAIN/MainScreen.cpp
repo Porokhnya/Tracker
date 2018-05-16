@@ -82,8 +82,8 @@ void MainScreen::drawADC(HalDC* hal)
   hal->println(F("рстуфхцчшщъыьэюя"));
   hal->println(F("Ёё123ABCabc!@#\xBC\xBD"));
   hal->println(F("10\x83 10\x8A\x82 10\x81\x80 2\x85"));
-*/
   hal->display();  
+*/
   
   /*
   nokia->setFont(SmallFont);

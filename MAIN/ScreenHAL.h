@@ -3,27 +3,21 @@
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #include "TinyVector.h"
 //#include <LCD5110_Graph.h>
-#include <Adafruit_GFX.h>
+#include <UTFT.h>
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class HalDC;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
 #if defined (__arm__)
   #define READ_FONT_BYTE(x) font[x]  
 #elif defined(__AVR__)  
   #define READ_FONT_BYTE(x) pgm_read_byte(&(font[x]))  
 #endif
- */
-//typedef LCD5110 HalDCDescriptor;
-//extern FONTTYPE SmallFont[]; // малый шрифт (из библиотеки)
-//extern FONTTYPE MediumNumbers[]; // средний шрифт для цифр (из библиотеки)
-
-typedef void* HalDCDescriptor;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef UTFT HalDCDescriptor;
 typedef uint16_t COLORTYPE;
-typedef GFXfont FONT_TYPE;
-
-
-//#define BGCOLOR BLACK
+typedef uint8_t FONT_TYPE;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#define BGCOLOR VGA_BLACK
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // абстрактный класс экрана
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -87,17 +81,20 @@ public:
   void switchToScreen(const char* screenName);
   void switchToScreen(unsigned int screenIndex);
 
-  void setCursor(uint16_t x, uint16_t y);
-  void print(const char* str);
-  void print(const String& str) { print(str.c_str()); }
-  void println(const char* str);
-  void println(const String& str) {println(str.c_str()); }
-  void display();
-  void setFont(FONT_TYPE* font);
-  void clearScreen(COLORTYPE color = 0);
-  void setTextColor(COLORTYPE color, COLORTYPE bgColor);
-  void setTextSize(uint8_t sz);
+  // HARDWARE HAL
+  int print(const char* str,int x, int y, int deg=0, bool computeStringLengthOnly=false);
 
+  void setFont(FONT_TYPE* font);
+  FONT_TYPE* getFont();
+  void setBackColor(COLORTYPE color);
+  COLORTYPE  getBackColor();
+  void setColor(COLORTYPE color);
+  COLORTYPE  getColor();
+  void fillScreen(COLORTYPE color);
+  void  drawRect(int x1, int y1, int x2, int y2);
+  void  drawRoundRect(int x1, int y1, int x2, int y2);
+  void  fillRect(int x1, int y1, int x2, int y2);
+  void  fillRoundRect(int x1, int y1, int x2, int y2);
   uint16_t getFontWidth(FONT_TYPE* font);
   uint16_t getFontHeight(FONT_TYPE* font);
   
@@ -114,10 +111,8 @@ private:
   
   HALScreensList screens;
   HalDCDescriptor* halDCDescriptor;
-  uint16_t cursorX, cursorY;
-
   int currentScreenIndex;
-  FONT_TYPE* curFont;
+
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,6 +1,10 @@
 #include "CONFIG.h"
 #include "ScreenHAL.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+const uint8_t utf8_rus_charmap[] PROGMEM = {'A',128,'B',129,130,'E',131,132,133,134,135,'K',136,'M','H','O',137,'P','C','T',138,139,'X',140,141,
+142,143,144,145,146,147,148,149,'a',150,151,152,153,'e',154,155,156,157,158,159,160,161,162,'o',163,'p','c',164,'y',165,'x',166,167,168,169,170,
+171,172,173,174,175};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 AbstractHALScreen::AbstractHALScreen(const char* name)
 {
   screenName = name;
@@ -55,8 +59,6 @@ HalDC::HalDC()
   requestedToActiveScreenIndex = -1;
   on_action = NULL;
   halDCDescriptor = NULL;
-  cursorX = cursorY = 0;
-  curFont = NULL;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::notifyAction(AbstractHALScreen* screen)
@@ -109,7 +111,7 @@ void HalDC::update()
     screen->onActivate();
 
     //Тут очистка экрана
-//     clearScreen(BGCOLOR);
+    fillScreen(BGCOLOR);
 
     screen->update(this);
     screen->draw(this);
@@ -225,96 +227,178 @@ return target;
 }
 */
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::setCursor(uint16_t x, uint16_t y)
-{
-  cursorX = x;
-  cursorY = y;
-  //halDCDescriptor->setCursor(x,y);
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::println(const char* str)
-{
-  //halDCDescriptor->println(utf8rus(str));
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::print(const char* str)
-{
-  //halDCDescriptor->print(utf8rus(str));
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::display()
-{
-  //halDCDescriptor->display();
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setFont(FONT_TYPE* font)
 {
- curFont = font;
- //halDCDescriptor->setFont(font); 
+ halDCDescriptor->setFont(font); 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::setTextSize(uint8_t sz)
+FONT_TYPE* HalDC::getFont()
 {
-  //halDCDescriptor->setTextSize(sz);
+  return halDCDescriptor->getFont();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::clearScreen(COLORTYPE color)
+void HalDC::fillScreen(COLORTYPE color)
 {
-  //halDCDescriptor->clearDisplay();
-  //halDCDescriptor->display();
+  halDCDescriptor->fillScr(color);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::setTextColor(COLORTYPE color, COLORTYPE bgColor)
+void HalDC::setBackColor(COLORTYPE color)
 {
- //halDCDescriptor->setTextColor(color, bgColor);
+  halDCDescriptor->setBackColor(color);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COLORTYPE  HalDC::getBackColor()
+{
+  return halDCDescriptor->getBackColor(); 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::setColor(COLORTYPE color)
+{
+  halDCDescriptor->setColor(color);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+COLORTYPE  HalDC::getColor()
+{
+  return halDCDescriptor->getColor();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void  HalDC::drawRect(int x1, int y1, int x2, int y2)
+{
+  halDCDescriptor->drawRect(x1,y1,x2,y2);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void  HalDC::drawRoundRect(int x1, int y1, int x2, int y2)
+{
+  halDCDescriptor->drawRoundRect(x1,y1,x2,y2);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void  HalDC::fillRect(int x1, int y1, int x2, int y2)
+{
+  halDCDescriptor->fillRect(x1,y1,x2,y2);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void  HalDC::fillRoundRect(int x1, int y1, int x2, int y2)
+{
+  halDCDescriptor->fillRoundRect(x1,y1,x2,y2);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint16_t HalDC::getFontWidth(FONT_TYPE* font)
 {
-  /*
     if(!font)
       return 0;
     
     return READ_FONT_BYTE(0);
-   */
-
-/*
-  halDCDescriptor->setFont(font);
-
-  int16_t  x1, y1;
-  uint16_t w, h;
- 
-  halDCDescriptor->getTextBounds("W", 0, 0, &x1, &y1, &w, &h);
-  
-  halDCDescriptor->setFont(curFont);
-
-  return w;
-  */
-  return 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint16_t HalDC::getFontHeight(FONT_TYPE* font)
 {
-  /*
     if(!font)
       return 0;
     
     return READ_FONT_BYTE(1); 
-    */
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthOnly)
+{
+ int stl, i;
+  stl = strlen(st);
 
-/*
-  halDCDescriptor->setFont(font);
-
-  int16_t  x1, y1;
-  uint16_t w, h;
- 
-  halDCDescriptor->getTextBounds("W", 0, 0, &x1, &y1, &w, &h);
+  if (halDCDescriptor->orient==PORTRAIT)
+  {
+    if (x==RIGHT) 
+      x=(halDCDescriptor->disp_x_size+1)-(stl*halDCDescriptor->cfont.x_size);
   
-  halDCDescriptor->setFont(curFont);
+    if (x==CENTER) 
+      x=((halDCDescriptor->disp_x_size+1)-(stl*halDCDescriptor->cfont.x_size))/2;
+  } 
+  else 
+  {
+    if (x==RIGHT) 
+      x=(halDCDescriptor->disp_y_size+1)-(stl*halDCDescriptor->cfont.x_size);
+    
+    if (x==CENTER) 
+      x=((halDCDescriptor->disp_y_size+1)-(stl*halDCDescriptor->cfont.x_size))/2;
+  }
+  
+  uint8_t utf_high_byte = 0;
+  uint8_t ch, ch_pos = 0;
+  
+  for (i = 0; i < stl; i++) 
+  {
+    ch = st[i];
+    
+    if ( ch >= 128) 
+    {
+      if ( utf_high_byte == 0 && (ch ==0xD0 || ch == 0xD1)) 
+      {
+        utf_high_byte = ch;
+        continue;
+      } 
+      else 
+      {
+        if ( utf_high_byte == 0xD0) 
+        {
+          if (ch == 0x81) 
+          { //Ё
+            ch = 6;
+          } 
+          else 
+          {
+            if(ch <= 0x95) 
+            {
+              ch -= 0x90;
+            } 
+            else if( ch < 0xB6)
+            {
+              ch -= (0x90 - 1);
+            } 
+            else 
+            {
+              ch -= (0x90 - 2);
+            }
+          }
+          
+          ch = pgm_read_byte((utf8_rus_charmap + ch));
+        
+        } 
+        else if (utf_high_byte == 0xD1) 
+        {
+          if (ch == 0x91) 
+          {//ё
+            ch = 39;
+          } 
+          else 
+          {
+            ch -= 0x80;
+            ch += 50;
+          }
+          
+          ch = pgm_read_byte((utf8_rus_charmap + ch));
+        }
+        
+        utf_high_byte = 0;
+      }
+    } 
+    else 
+    {
+      utf_high_byte = 0;
+    }
+    
 
-  return h;
-  */
-  return 0;
+    if (deg==0) 
+    {
+      if(!computeStringLengthOnly)
+        halDCDescriptor->printChar(ch, x + (ch_pos * (halDCDescriptor->cfont.x_size)), y);
+    } 
+    else 
+    {
+      if(!computeStringLengthOnly)
+        halDCDescriptor->rotateChar(ch, x, y, ch_pos, deg);
+    }
+    ++ch_pos;
+  } // for  
+
+  return ch_pos;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 HalDC Screen;
