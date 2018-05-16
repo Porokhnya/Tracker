@@ -7,7 +7,7 @@
 #if DISPLAY_USED == DISPLAY_ILI9341
 #include <UTFT_ILI9341.h>
 #include <URTouchCD_ILI9341.h>
-#include <URTouch_ILI9341.h>
+#include <URTouch.h>
 #include "UTFT_Buttons_Rus.h"
 #else
   #error "Unsupported display!"
