@@ -24,11 +24,11 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 #if DISPLAY_USED == DISPLAY_ILI9341
 //--------------------------------------------------------------------------------------------------------------------------------------
-UTFT_Buttons_Rus::UTFT_Buttons_Rus(HalDC* hal)
+UTFT_Buttons_Rus::UTFT_Buttons_Rus(UTFT* _tft, URTouch* _touch, PrusPrintFunc rusPrinter)
 {
-	_UTFT = hal->getHAL();
-	_URTouch = hal->getTouch();
-  pRusPrinter = hal;
+	_UTFT = _tft;
+	_URTouch = _touch;
+  pRusPrinter = rusPrinter;
   
 	deleteAllButtons();
 	_color_text				= VGA_WHITE;
@@ -170,6 +170,7 @@ void UTFT_Buttons_Rus::drawButton(int buttonID)
     return;
   }
 
+  /*
 	if (buttons[buttonID].flags & BUTTON_BITMAP)
 	{
 		_UTFT->drawBitmap(buttons[buttonID].pos_x, buttons[buttonID].pos_y, buttons[buttonID].width, buttons[buttonID].height, buttons[buttonID].data);
@@ -189,6 +190,7 @@ void UTFT_Buttons_Rus::drawButton(int buttonID)
 		}
 	}
 	else
+  */
 	{
     if(buttons[buttonID].flags & BUTTON_HAS_BACK_COLOR && !(buttons[buttonID].flags & BUTTON_DISABLED))
       _UTFT->setColor(buttons[buttonID].backColor);
@@ -225,7 +227,7 @@ void UTFT_Buttons_Rus::drawButton(int buttonID)
 		else
 		{
 			_UTFT->setFont(_font_text);
-      int lenOfLabel = pRusPrinter->print(buttons[buttonID].label, 0,0,0,true);
+      int lenOfLabel = pRusPrinter(buttons[buttonID].label, 0,0,0,true);
 			text_x = ((buttons[buttonID].width/2) - ((lenOfLabel * _UTFT->getFontXsize())/2)) + buttons[buttonID].pos_x;
 			text_y = (buttons[buttonID].height/2) - (_UTFT->getFontYsize()/2) + buttons[buttonID].pos_y;
 		}
@@ -236,16 +238,16 @@ void UTFT_Buttons_Rus::drawButton(int buttonID)
       _UTFT->setBackColor(_color_background);
       
 		//_UTFT->print(buttons[buttonID].label, text_x, text_y);
-    pRusPrinter->print(buttons[buttonID].label, text_x, text_y);
+    pRusPrinter(buttons[buttonID].label, text_x, text_y,0,false);
     yield();
     
 		if ((buttons[buttonID].flags & BUTTON_SYMBOL) and (buttons[buttonID].flags & BUTTON_SYMBOL_REP_3X))
 		{
 //			_UTFT->print(buttons[buttonID].label, text_x-_UTFT->getFontXsize(), text_y);
 //			_UTFT->print(buttons[buttonID].label, text_x+_UTFT->getFontXsize(), text_y);
-      pRusPrinter->print(buttons[buttonID].label, text_x-_UTFT->getFontXsize(), text_y);
+      pRusPrinter(buttons[buttonID].label, text_x-_UTFT->getFontXsize(), text_y,0,false);
       yield();
-      pRusPrinter->print(buttons[buttonID].label, text_x+_UTFT->getFontXsize(), text_y);
+      pRusPrinter(buttons[buttonID].label, text_x+_UTFT->getFontXsize(), text_y,0,false);
       yield();
 		}
 	}

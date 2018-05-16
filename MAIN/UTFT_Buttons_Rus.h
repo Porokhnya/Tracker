@@ -27,6 +27,9 @@
 
 #if DISPLAY_USED == DISPLAY_ILI9341
 
+#include <UTFT_ILI9341.h>
+#include <URTouch_ILI9341.h>
+
 #define UTFT_BUTTONS_VERSION	103
 
 #if defined(__AVR__)
@@ -37,7 +40,7 @@
 	#include "Arduino.h"
 #endif
 
-#include "ScreenHAL.h"
+#include "CONFIG.h"
 
 #define MAX_BUTTONS	20	// Maximum number of buttons available at one time
 
@@ -53,6 +56,8 @@
 #define BUTTON_VISIBLE 0x0080
 #define BUTTON_SELECTED 0x0100
 
+class UTFT_Buttons_Rus;
+
 typedef struct
 {
   int16_t			pos_x, pos_y, width, height;
@@ -64,11 +69,12 @@ typedef struct
 
 typedef void (*DrawButtonsUpdateFunc)(void);
 typedef void (*OnCheckButtonsFunc)(int button);
+typedef int (*PrusPrintFunc)(const char* st,int x, int y, int deg, bool computeStringLengthOnly);
 
 class UTFT_Buttons_Rus
 {
 	public:
-		UTFT_Buttons_Rus(HalDC* hal);
+		UTFT_Buttons_Rus(UTFT* _tft, URTouch* _touch, PrusPrintFunc rusPrinter);
 
 		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height, const char *label, uint16_t flags=0);
 		int		addButton(uint16_t x, uint16_t y, uint16_t width, uint16_t height, bitmapdatatype data, uint16_t flags=0);
@@ -95,7 +101,7 @@ class UTFT_Buttons_Rus
 		UTFT		*_UTFT;
 		URTouch		*_URTouch;
 
-    HalDC* pRusPrinter;
+    PrusPrintFunc pRusPrinter;
     
 		button_type	buttons[MAX_BUTTONS];
 		word		_color_text, _color_text_inactive, _color_background, _color_border, _color_hilite;

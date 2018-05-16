@@ -7,6 +7,11 @@
   171,172,173,174,175};
 #endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int rusPrintFunc(const char* st,int x, int y, int deg, bool computeStringLengthOnly)
+{
+  return Screen.print(st,x,y,deg,computeStringLengthOnly);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 AbstractHALScreen::AbstractHALScreen(const char* name)
 {
   screenName = name;
@@ -22,7 +27,7 @@ AbstractHALScreen::~AbstractHALScreen()
 void AbstractHALScreen::setup(HalDC* hal)
 {
 #if DISPLAY_USED == DISPLAY_ILI9341  
-  screenButtons = new UTFT_Buttons_Rus(this);
+  screenButtons = new UTFT_Buttons_Rus(hal->getUTFT(), hal->getTouch(), rusPrintFunc);
   screenButtons->setTextFont(SCREEN_SMALL_FONT);
   screenButtons->setButtonColors(SCREEN_BUTTON_COLORS);
 #endif  
