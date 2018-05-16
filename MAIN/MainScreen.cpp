@@ -63,51 +63,27 @@ void MainScreen::doUpdate(HalDC* hal)
 void MainScreen::drawADC(HalDC* hal)
 {  
   // отрисовка показаний ADC
-  /*
-  hal->clearScreen(WHITE); 
-  hal->setTextColor(WHITE,BLACK);
-  hal->setTextSize(1);
-  hal->setCursor(0,0);
-
-
-  hal->println(F("Строка1"));
-  hal->println(F("Вторая"));
-  hal->println(F("И ещё"));
-  */
-
-/*
-  hal->println(F("АБВГДЕЖЗИЙКЛМНОП"));
-  hal->println(F("РСТУФХЦЧШЩЪЫЬЭЮЯ"));
-  hal->println(F("абвгдежзийклмноп"));
-  hal->println(F("рстуфхцчшщъыьэюя"));
-  hal->println(F("Ёё123ABCabc!@#\xBC\xBD"));
-  hal->println(F("10\x83 10\x8A\x82 10\x81\x80 2\x85"));
-  hal->display();  
-*/
   
-  /*
-  nokia->setFont(SmallFont);
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->setColor(SCREEN_TEXT_COLOR);
 
-  uint8_t fontHeight = FontUtils::getFontHeight(SmallFont);
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
   
-  String adcString = F("ADC: ");
+  String adcString = F("АЦП: ");
   adcString += adcValue;
 
-  nokia->print(adcString.c_str(),0,fontHeight + 2); 
-  */
+  hal->print(adcString.c_str(),0,fontHeight + 2); 
+  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTemperature(HalDC* hal)
-{
-  /*
-  HalDCDescriptor* nokia = hal->getDC();
-  
+{  
   // отрисовка температуры
-  nokia->setFont(SmallFont);
-
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->setColor(SCREEN_TEXT_COLOR);
 
   // рисуем температуру
-  String tempString = F("DS18B20: ");
+  String tempString = F("Температура: ");
   
   if(temp.Value == NO_TEMPERATURE_DATA) // нет температуры
   {
@@ -124,9 +100,9 @@ void MainScreen::drawTemperature(HalDC* hal)
 
     tempString += temp.Fract;
 
-    nokia->print(tempString.c_str(),0,0);  
+    hal->print(tempString.c_str(),0,0);  
   }
-  */
+
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

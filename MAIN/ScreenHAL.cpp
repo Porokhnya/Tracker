@@ -79,11 +79,12 @@ void HalDC::initHAL()
 {
   //Тут инициализация/переинициализация дисплея
   #if DISPLAY_USED == DISPLAY_ILI9341
-  /*
-    halDCDescriptor->begin();
-    halDCDescriptor->cp437(true);
-    halDCDescriptor->display();
-  */  
+
+  halDCDescriptor->InitLCD(SCREEN_ORIENTATION);
+  setBackColor(SCREEN_BACK_COLOR);
+  fillScreen(SCREEN_BACK_COLOR);
+  setFont(SCREEN_SMALL_FONT);
+
   #else
     #error "Unsupported display!"
   #endif  
@@ -94,9 +95,13 @@ void HalDC::setup()
   //создание библиотеки для экрана
 
   #if DISPLAY_USED == DISPLAY_ILI9341
-  /*
-   halDCDescriptor = new HalDCDescriptor(DC_PIN, CS_PIN, RST_PIN);
-  */
+  
+    halDCDescriptor = new UTFT();
+  
+    #if DISPLAY_INIT_DELAY > 0
+    delay(DISPLAY_INIT_DELAY);
+    #endif  
+  
   #else
     #error "Unsupported display!"
   #endif
@@ -122,7 +127,7 @@ void HalDC::update()
     screen->onActivate();
 
     //Тут очистка экрана
-    fillScreen(BGCOLOR);
+    fillScreen(SCREEN_BACK_COLOR);
 
     screen->update(this);
     screen->draw(this);

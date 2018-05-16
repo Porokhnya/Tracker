@@ -5,7 +5,7 @@
 #include "TinyVector.h"
 
 #if DISPLAY_USED == DISPLAY_ILI9341
-#include <UTFT.h>
+#include <UTFT_ILI9341.h>
 #else
   #error "Unsupported display!"
 #endif  
@@ -30,7 +30,10 @@ class HalDC;
   typedef uint8_t FONT_TYPE;
   extern FONT_TYPE BigRusFont[];               // какой шрифт используем
   extern FONT_TYPE SmallRusFont[];             // какой шрифт используем
-  #define BGCOLOR VGA_BLACK
+  #define SCREEN_BACK_COLOR VGA_BLACK         // цвет фона
+  #define SCREEN_TEXT_COLOR VGA_WHITE         // цвет шрифта
+  #define SCREEN_SMALL_FONT SmallRusFont      // маленький шрифт
+  #define SCREEN_ORIENTATION  LANDSCAPE       // ориентация экрана
 #else
   #error "Unsupported display!"
 #endif  
