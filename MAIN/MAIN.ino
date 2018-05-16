@@ -31,7 +31,7 @@ void setup()
   DBGLN(F("Settings inited."));
   
   DBGLN(F("Init RTC..."));
-  RealtimeClock.begin(1);           // запускаем их на шине I2C 1 (SDA1, SCL1)
+  RealtimeClock.begin(RTC_WIRE_NUMBER);           // запускаем их на шине I2C 1 (SDA1, SCL1)
  // RealtimeClock.setTime(0,1,11,1,7,2,2018);
 
   DBGLN(F("INIT SD..."));

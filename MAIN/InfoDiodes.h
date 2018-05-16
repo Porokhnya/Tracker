@@ -9,8 +9,6 @@ class InfoDiodesList
     void begin();
 
     void ready(bool on=true);
-    void failure(bool on=true);
-    void test(bool on=true);
 
   private:
 };
