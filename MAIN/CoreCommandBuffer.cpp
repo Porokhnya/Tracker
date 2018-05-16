@@ -418,10 +418,12 @@ int16_t CommandHandlerClass::getPinState(uint8_t pin)
   return digitalRead(pin);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+extern "C" char *sbrk(int i);
+//--------------------------------------------------------------------------------------------------------------------------------------
 int CommandHandlerClass::getFreeMemory()
 {
     struct mallinfo mi = mallinfo();
-    char* heapend = _sbrk(0);
+    char* heapend = sbrk(0);
     register char* stack_ptr asm("sp");
 
     return (stack_ptr - heapend + mi.fordblks);
