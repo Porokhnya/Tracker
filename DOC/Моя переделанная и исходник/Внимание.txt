@@ -1,0 +1,8 @@
+В файлах TFT9341.h и TFT9341.cpp  в конце необходимо удалить "extern TFT9341 Tft;" и "TFT9341 Tft=TFT9341();"
+
+Иначе будет полосить экран.
+
+Программа  void fillScr(uint16_t color);  не работает, нужно смотреть.
+Вместо нее применяю void fillScr(uint8_t r, uint8_t g, uint8_t b);
+
+Цвета переименовал как в UTFT
