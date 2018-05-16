@@ -4,7 +4,6 @@
 #include "TinyVector.h"
 //#include <LCD5110_Graph.h>
 #include <Adafruit_GFX.h>
-#include <Adafruit_PCD8544.h>
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class HalDC;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -19,12 +18,12 @@ class HalDC;
 //extern FONTTYPE SmallFont[]; // малый шрифт (из библиотеки)
 //extern FONTTYPE MediumNumbers[]; // средний шрифт для цифр (из библиотеки)
 
-typedef Adafruit_PCD8544 HalDCDescriptor;
+typedef void* HalDCDescriptor;
 typedef uint16_t COLORTYPE;
 typedef GFXfont FONT_TYPE;
 
 
-#define BGCOLOR BLACK
+//#define BGCOLOR BLACK
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // абстрактный класс экрана
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -106,7 +105,7 @@ public:
 private:
 
 
-  String utf8rus(const char* source);
+  //String utf8rus(const char* source);
 
   AbstractHALScreen* requestedToActiveScreen;
   int requestedToActiveScreenIndex;

@@ -63,6 +63,7 @@ void MainScreen::doUpdate(HalDC* hal)
 void MainScreen::drawADC(HalDC* hal)
 {  
   // отрисовка показаний ADC
+  /*
   hal->clearScreen(WHITE); 
   hal->setTextColor(WHITE,BLACK);
   hal->setTextSize(1);
@@ -72,6 +73,7 @@ void MainScreen::drawADC(HalDC* hal)
   hal->println(F("Строка1"));
   hal->println(F("Вторая"));
   hal->println(F("И ещё"));
+  */
 
 /*
   hal->println(F("АБВГДЕЖЗИЙКЛМНОП"));
