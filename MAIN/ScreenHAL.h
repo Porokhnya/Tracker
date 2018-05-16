@@ -1,25 +1,39 @@
 #ifndef _UTFTMENU_H
 #define _UTFTMENU_H
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#include "CONFIG.h"
 #include "TinyVector.h"
+
+#if DISPLAY_USED == DISPLAY_ILI9341
 #include <UTFT.h>
+#else
+  #error "Unsupported display!"
+#endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class HalDC;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#if defined (__arm__)
-  #define READ_FONT_BYTE(x) font[x]  
-#elif defined(__AVR__)  
-  #define READ_FONT_BYTE(x) pgm_read_byte(&(font[x]))  
-#endif
+#if DISPLAY_USED == DISPLAY_ILI9341
+
+  #if defined (__arm__)
+    #define READ_FONT_BYTE(x) font[x]  
+  #elif defined(__AVR__)  
+    #define READ_FONT_BYTE(x) pgm_read_byte(&(font[x]))  
+  #endif
+
+#else
+  #error "Unsupported display!"
+#endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-typedef UTFT HalDCDescriptor;
-typedef uint16_t COLORTYPE;
-typedef uint8_t FONT_TYPE;
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-extern uint8_t BigRusFont[];               // какой шрифт используем
-extern uint8_t SmallRusFont[];             // какой шрифт используем
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#define BGCOLOR VGA_BLACK
+#if DISPLAY_USED == DISPLAY_ILI9341
+  typedef UTFT HalDCDescriptor;
+  typedef uint16_t COLORTYPE;
+  typedef uint8_t FONT_TYPE;
+  extern FONT_TYPE BigRusFont[];               // какой шрифт используем
+  extern FONT_TYPE SmallRusFont[];             // какой шрифт используем
+  #define BGCOLOR VGA_BLACK
+#else
+  #error "Unsupported display!"
+#endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // абстрактный класс экрана
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -103,6 +117,9 @@ public:
 
 private:
 
+#if DISPLAY_USED == DISPLAY_ILI9341
+  int printILI(const char* str,int x, int y, int deg=0, bool computeStringLengthOnly=false);
+#endif
 
   //String utf8rus(const char* source);
 

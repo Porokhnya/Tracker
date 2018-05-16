@@ -1,9 +1,11 @@
 #include "CONFIG.h"
 #include "ScreenHAL.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-const uint8_t utf8_rus_charmap[] PROGMEM = {'A',128,'B',129,130,'E',131,132,133,134,135,'K',136,'M','H','O',137,'P','C','T',138,139,'X',140,141,
-142,143,144,145,146,147,148,149,'a',150,151,152,153,'e',154,155,156,157,158,159,160,161,162,'o',163,'p','c',164,'y',165,'x',166,167,168,169,170,
-171,172,173,174,175};
+#if DISPLAY_USED == DISPLAY_ILI9341
+  const uint8_t utf8_rus_charmap[] PROGMEM = {'A',128,'B',129,130,'E',131,132,133,134,135,'K',136,'M','H','O',137,'P','C','T',138,139,'X',140,141,
+  142,143,144,145,146,147,148,149,'a',150,151,152,153,'e',154,155,156,157,158,159,160,161,162,'o',163,'p','c',164,'y',165,'x',166,167,168,169,170,
+  171,172,173,174,175};
+#endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 AbstractHALScreen::AbstractHALScreen(const char* name)
 {
@@ -76,19 +78,28 @@ void HalDC::addScreen(AbstractHALScreen* screen)
 void HalDC::initHAL()
 {
   //Тут инициализация/переинициализация дисплея
-/*
-  halDCDescriptor->begin();
-  halDCDescriptor->cp437(true);
-  halDCDescriptor->display();
-*/  
+  #if DISPLAY_USED == DISPLAY_ILI9341
+  /*
+    halDCDescriptor->begin();
+    halDCDescriptor->cp437(true);
+    halDCDescriptor->display();
+  */  
+  #else
+    #error "Unsupported display!"
+  #endif  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setup()
 {
   //создание библиотеки для экрана
+
+  #if DISPLAY_USED == DISPLAY_ILI9341
   /*
    halDCDescriptor = new HalDCDescriptor(DC_PIN, CS_PIN, RST_PIN);
   */
+  #else
+    #error "Unsupported display!"
+  #endif
   
   // инициализируем дисплей
   initHAL();
@@ -229,22 +240,38 @@ return target;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setFont(FONT_TYPE* font)
 {
- halDCDescriptor->setFont(font); 
+  #if DISPLAY_USED == DISPLAY_ILI9341
+   halDCDescriptor->setFont(font); 
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 FONT_TYPE* HalDC::getFont()
 {
-  return halDCDescriptor->getFont();
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    return halDCDescriptor->getFont();
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::fillScreen(COLORTYPE color)
 {
-  halDCDescriptor->fillScr(color);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->fillScr(color);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setBackColor(COLORTYPE color)
 {
-  halDCDescriptor->setBackColor(color);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->setBackColor(color);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 COLORTYPE  HalDC::getBackColor()
@@ -254,7 +281,11 @@ COLORTYPE  HalDC::getBackColor()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setColor(COLORTYPE color)
 {
-  halDCDescriptor->setColor(color);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->setColor(color);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 COLORTYPE  HalDC::getColor()
@@ -264,42 +295,79 @@ COLORTYPE  HalDC::getColor()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void  HalDC::drawRect(int x1, int y1, int x2, int y2)
 {
-  halDCDescriptor->drawRect(x1,y1,x2,y2);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->drawRect(x1,y1,x2,y2);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void  HalDC::drawRoundRect(int x1, int y1, int x2, int y2)
 {
-  halDCDescriptor->drawRoundRect(x1,y1,x2,y2);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->drawRoundRect(x1,y1,x2,y2);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void  HalDC::fillRect(int x1, int y1, int x2, int y2)
 {
-  halDCDescriptor->fillRect(x1,y1,x2,y2);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->fillRect(x1,y1,x2,y2);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void  HalDC::fillRoundRect(int x1, int y1, int x2, int y2)
 {
-  halDCDescriptor->fillRoundRect(x1,y1,x2,y2);
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->fillRoundRect(x1,y1,x2,y2);
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint16_t HalDC::getFontWidth(FONT_TYPE* font)
 {
+  #if DISPLAY_USED == DISPLAY_ILI9341
     if(!font)
       return 0;
     
     return READ_FONT_BYTE(0);
+    
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint16_t HalDC::getFontHeight(FONT_TYPE* font)
 {
+  #if DISPLAY_USED == DISPLAY_ILI9341
     if(!font)
       return 0;
     
     return READ_FONT_BYTE(1); 
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthOnly)
 {
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    return printILI(st,x,y,deg,computeStringLengthOnly);
+  #else
+    #error "Unsupported display!"
+  #endif    
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#if DISPLAY_USED == DISPLAY_ILI9341
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int HalDC::printILI(const char* st,int x, int y, int deg, bool computeStringLengthOnly)
+{
+    
  int stl, i;
   stl = strlen(st);
 
@@ -400,6 +468,8 @@ int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthO
 
   return ch_pos;
 }
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#endif // DISPLAY_USED == DISPLAY_ILI9341
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 HalDC Screen;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
