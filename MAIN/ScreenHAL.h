@@ -6,6 +6,9 @@
 
 #if DISPLAY_USED == DISPLAY_ILI9341
 #include <UTFT_ILI9341.h>
+#include <URTouchCD_ILI9341.h>
+#include <URTouch_ILI9341.h>
+#include "UTFT_Buttons_Rus.h"
 #else
   #error "Unsupported display!"
 #endif  
@@ -34,6 +37,10 @@ class HalDC;
   #define SCREEN_TEXT_COLOR VGA_WHITE         // цвет шрифта
   #define SCREEN_SMALL_FONT SmallRusFont      // маленький шрифт
   #define SCREEN_ORIENTATION  LANDSCAPE       // ориентация экрана
+  #define TOUCH_PRECISION PREC_HI
+  #define SCREEN_BUTTON_COLORS VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE // цвета для кнопок
+  #define SCREEN_BUTTON_COLORS2 VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, 0x4DC9 // цвета для кнопок
+  
 #else
   #error "Unsupported display!"
 #endif  
@@ -69,6 +76,10 @@ class AbstractHALScreen
     virtual void doDraw(HalDC* hal) = 0;
     virtual void onButtonPressed(HalDC* hal,int pressedButton) = 0;
 
+    #if DISPLAY_USED == DISPLAY_ILI9341
+      UTFT_Buttons_Rus* screenButtons; // кнопки на экране    
+    #endif
+
     private:
       const char* screenName;
       bool isActiveScreen;
@@ -89,6 +100,13 @@ public:
   void setup();
   void update();
   void initHAL();
+
+
+  HalDCDescriptor* getHAL() {return halDCDescriptor; }
+  
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    URTouch* getTouch() {return halTouch; }
+  #endif
 
   void addScreen(AbstractHALScreen* screen);
 
@@ -134,6 +152,10 @@ private:
   HALScreensList screens;
   HalDCDescriptor* halDCDescriptor;
   int currentScreenIndex;
+
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    URTouch* halTouch;
+  #endif
 
   
 };

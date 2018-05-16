@@ -14,10 +14,19 @@ AbstractHALScreen::AbstractHALScreen(const char* name)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 AbstractHALScreen::~AbstractHALScreen()
 {
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    delete screenButtons;
+  #endif
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void AbstractHALScreen::setup(HalDC* hal)
 {
+#if DISPLAY_USED == DISPLAY_ILI9341  
+  screenButtons = new UTFT_Buttons_Rus(this);
+  screenButtons->setTextFont(SCREEN_SMALL_FONT);
+  screenButtons->setButtonColors(SCREEN_BUTTON_COLORS);
+#endif  
+  
   // тут общие для всех классов настройки
   doSetup(hal); 
 }
@@ -26,13 +35,15 @@ void AbstractHALScreen::update(HalDC* hal)
 {
   if(isActive())
   {
-  int pressedButton = -1;//screenButtons->checkButtons();
-  
-  if(pressedButton != -1)
-  {
-    hal->notifyAction(this);
-    onButtonPressed(hal, pressedButton);
-  }
+    #if DISPLAY_USED == DISPLAY_ILI9341 
+      int pressedButton = screenButtons->checkButtons();
+      
+      if(pressedButton != -1)
+      {
+        hal->notifyAction(this);
+        onButtonPressed(hal, pressedButton);
+      }
+    #endif
 
     if(isActive())
       doUpdate(hal);
@@ -47,7 +58,9 @@ void AbstractHALScreen::draw(HalDC* hal)
     
     if(isActive())
     {
-     // screenButtons->drawButtons(); 
+      #if DISPLAY_USED == DISPLAY_ILI9341 
+        screenButtons->drawButtons(); 
+      #endif
     }
   }
 }
@@ -61,6 +74,10 @@ HalDC::HalDC()
   requestedToActiveScreenIndex = -1;
   on_action = NULL;
   halDCDescriptor = NULL;
+
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halTouch = NULL;
+  #endif
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::notifyAction(AbstractHALScreen* screen)
@@ -85,6 +102,9 @@ void HalDC::initHAL()
   fillScreen(SCREEN_BACK_COLOR);
   setFont(SCREEN_SMALL_FONT);
 
+  halTouch->InitTouch(SCREEN_ORIENTATION);
+  halTouch->setPrecision(TOUCH_PRECISION);
+  
   #else
     #error "Unsupported display!"
   #endif  
@@ -97,6 +117,8 @@ void HalDC::setup()
   #if DISPLAY_USED == DISPLAY_ILI9341
   
     halDCDescriptor = new UTFT();
+    halTouch = new URTouch(TFT_TOUCH_CLK_PIN,TFT_TOUCH_CS_PIN,TFT_TOUCH_DIN_PIN,TFT_TOUCH_DOUT_PIN,TFT_TOUCH_IRQ_PIN);
+
   
     #if DISPLAY_INIT_DELAY > 0
     delay(DISPLAY_INIT_DELAY);
