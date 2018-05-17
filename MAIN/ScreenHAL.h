@@ -37,10 +37,11 @@ class HalDC;
   extern FONT_TYPE Various_Symbols_16x32[];    // какой шрифт используем
   extern FONT_TYPE Various_Symbols_32x32[];    // какой шрифт используем
   
-  #define SCREEN_BACK_COLOR VGA_RED          // цвет фона
+  #define SCREEN_BACK_COLOR VGA_BLACK          // цвет фона
   #define SCREEN_TEXT_COLOR VGA_WHITE          // цвет шрифта
   #define SCREEN_SMALL_FONT Inconsola       // маленький шрифт
   #define SCREEN_ORIENTATION  PORTRAIT         // ориентация экрана вертикальная
+#define SCREEN_ORIENTATION  LANDSCAPE         // ориентация экрана вертикальная
   #define TOUCH_PRECISION PREC_HI
   #define SCREEN_BUTTON_COLORS VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE // цвета для кнопок
   #define SCREEN_BUTTON_COLORS2 VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, 0x4DC9 // цвета для кнопок

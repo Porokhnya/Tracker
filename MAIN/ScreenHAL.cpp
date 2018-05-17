@@ -306,9 +306,9 @@ FONT_TYPE* HalDC::getFont()
 void HalDC::fillScreen(COLORTYPE color)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
-//	halDCDescriptor->setColor(color);
-	halDCDescriptor->fillRect(0, 0, 240, 320, color);
-   // halDCDescriptor->fillScr(color);
+	//halDCDescriptor->setColor(color);
+	//halDCDescriptor->fillRect(0, 0, 240, 320, color);
+    halDCDescriptor->fillScr(0,0,0);
   #else
     #error "Unsupported display!"
   #endif    
