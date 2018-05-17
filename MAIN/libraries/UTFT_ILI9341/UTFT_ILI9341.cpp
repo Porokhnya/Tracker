@@ -591,18 +591,18 @@ void UTFT::fillScr(uint8_t r, uint8_t g, uint8_t b) {
 void UTFT::fillScr(uint16_t color) {
 	//Переделать
     
-	//const uint32_t lines = (uint32_t)76800 / (uint32_t)SCANLINES;
-	//for (uint16_t i = 0; i < SCANLINES; i++) {
-	//	scanline[i] = (uint8_t(color & 0xFF) <<8 )|( uint8_t(color>>8));
-	//}
-	//		
- //   TFT_CS_LOW;
-	//setXY(0,0,disp_x_size,disp_y_size);	
- //   wr_comm_last(RAMWR);
- //   for (uint32_t i = 0; i < lines; i++) {
-	//	spi_write(scanline,sizeof(scanline));
-	//}
- //   TFT_CS_HIGH;
+	const uint32_t lines = (uint32_t)76800 / (uint32_t)SCANLINES;
+	for (uint16_t i = 0; i < SCANLINES; i++) {
+		scanline[i] = (uint8_t(color & 0xFF) <<8 )|( uint8_t(color>>8));
+	}
+			
+    TFT_CS_LOW;
+	setXY(0,0,disp_x_size,disp_y_size);	
+    wr_comm_last(RAMWR);
+    for (uint32_t i = 0; i < lines; i++) {
+		spi_write(scanline,sizeof(scanline));
+	}
+    TFT_CS_HIGH;
 }
 
 void UTFT::fillRect(int x1, int y1, int x2, int y2, uint16_t color, boolean setCS) {
@@ -792,6 +792,7 @@ __attribute__((always_inline)) void UTFT::setPixel(uint16_t color) {
 }
 
 void UTFT::printChar(byte c, int x, int y) {
+	
 	byte i,ch;
 
     uint16_t pxcnt = cfont.x_size * cfont.y_size;

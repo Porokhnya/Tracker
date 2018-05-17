@@ -119,7 +119,7 @@ void HalDC::initHAL()
 
   halDCDescriptor->InitLCD(SCREEN_ORIENTATION);
   setBackColor(SCREEN_BACK_COLOR);
- // fillScreen(SCREEN_BACK_COLOR);
+  fillScreen(SCREEN_BACK_COLOR);
   setFont(SCREEN_SMALL_FONT);
 
   halTouch->InitTouch(SCREEN_ORIENTATION);
@@ -169,7 +169,7 @@ void HalDC::update()
     screen->onActivate();
 
     //Тут очистка экрана
-    //fillScreen(SCREEN_BACK_COLOR);
+   fillScreen(SCREEN_BACK_COLOR);
 
     screen->update(this);
     screen->draw(this);
@@ -306,7 +306,9 @@ FONT_TYPE* HalDC::getFont()
 void HalDC::fillScreen(COLORTYPE color)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
-    halDCDescriptor->fillScr(color);
+//	halDCDescriptor->setColor(color);
+	halDCDescriptor->fillRect(0, 0, 240, 320, color);
+   // halDCDescriptor->fillScr(color);
   #else
     #error "Unsupported display!"
   #endif    
