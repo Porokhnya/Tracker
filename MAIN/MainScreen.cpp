@@ -31,7 +31,7 @@ void MainScreen::doSetup(HalDC* hal)
 
 #if DISPLAY_USED == DISPLAY_ILI9341
 
-	screenButtons->addButton(5, 275, 190, 40, "hgfddfd");
+	screenButtons->addButton(5, 275, 190, 40, "ПРОБА");
 	// screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
 #else
   #error "Unsupported display!"  
@@ -80,7 +80,7 @@ void MainScreen::drawADC(HalDC* hal)
 
   uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
   
-  String adcString = F("ADC: ");
+  String adcString = F("АЦП: ");
   adcString += adcValue;
 
   hal->print(adcString.c_str(),0,fontHeight + 2); 
@@ -94,7 +94,7 @@ void MainScreen::drawTemperature(HalDC* hal)
   hal->setColor(SCREEN_TEXT_COLOR);
 
   // рисуем температуру
-  String tempString = F("Temp: ");
+  String tempString = F("Температура: ");
   
   if(temp.Value == NO_TEMPERATURE_DATA) // нет температуры
   {
