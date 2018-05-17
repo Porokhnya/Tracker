@@ -285,7 +285,8 @@ void UTFT::InitLCD(uint8_t orientation) {
 	PINMODE(RESET,OUTPUT);
 	PINMODE(CS,OUTPUT);
 	PINMODE(DC,OUTPUT);
-    
+
+
     TFT_BL_ON;
 	SPI.begin();
 

@@ -46,7 +46,7 @@ void AbstractHALScreen::setup(HalDC* hal)
   screenButtons->setTextFont(SCREEN_SMALL_FONT);
   screenButtons->setButtonColors(SCREEN_BUTTON_COLORS);
 #endif  
-  
+
   // тут общие для всех классов настройки
   doSetup(hal); 
 }
