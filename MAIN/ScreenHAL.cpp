@@ -1,11 +1,11 @@
 #include "CONFIG.h"
 #include "ScreenHAL.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+const uint8_t utf8_rus_charmap[] PROGMEM = {'A',128,'B',129,130,'E',131,132,133,134,135,'K',136,'M','H','O',137,'P','C','T',138,139,'X',140,141,
+142,143,144,145,146,147,148,149,'a',150,151,152,153,'e',154,155,156,157,158,159,160,161,162,'o',163,'p','c',164,'y',165,'x',166,167,168,169,170,
+171,172,173,174,175};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #if DISPLAY_USED == DISPLAY_ILI9341
-  const uint8_t utf8_rus_charmap[] PROGMEM = {'A',128,'B',129,130,'E',131,132,133,134,135,'K',136,'M','H','O',137,'P','C','T',138,139,'X',140,141,
-  142,143,144,145,146,147,148,149,'a',150,151,152,153,'e',154,155,156,157,158,159,160,161,162,'o',163,'p','c',164,'y',165,'x',166,167,168,169,170,
-  171,172,173,174,175};
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void buttonPressed(int btn) // вызывается по нажатию на кнопку - тут можно пищать баззером, например)
 {
@@ -94,6 +94,7 @@ HalDC::HalDC()
   requestedToActiveScreenIndex = -1;
   on_action = NULL;
   halDCDescriptor = NULL;
+  curFont = NULL;
 
   #if DISPLAY_USED == DISPLAY_ILI9341
     halTouch = NULL;
@@ -124,7 +125,10 @@ void HalDC::initHAL()
 
   halTouch->InitTouch(SCREEN_ORIENTATION);
   halTouch->setPrecision(TOUCH_PRECISION);
-  
+
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+      halDCDescriptor->InitLCD();
+      setFont(SCREEN_SMALL_FONT);
   #else
     #error "Unsupported display!"
   #endif  
@@ -139,15 +143,16 @@ void HalDC::setup()
     halDCDescriptor = new UTFT(TFT_MODEL,TFT_RS_PIN,TFT_WR_PIN,TFT_CS_PIN,TFT_RST_PIN,TFT_DC_PIN);
     halTouch = new URTouch(TFT_TOUCH_CLK_PIN,TFT_TOUCH_CS_PIN,TFT_TOUCH_DIN_PIN,TFT_TOUCH_DOUT_PIN,TFT_TOUCH_IRQ_PIN);
 
-  
-    #if DISPLAY_INIT_DELAY > 0
-    delay(DISPLAY_INIT_DELAY);
-    #endif  
-  
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor = new LCD5110(NOKIA_SCK_PIN,NOKIA_MOSI_PIN,NOKIA_DC_PIN,NOKIA_RST_PIN,NOKIA_CS_PIN);
   #else
     #error "Unsupported display!"
   #endif
-  
+
+  #if DISPLAY_INIT_DELAY > 0
+    delay(DISPLAY_INIT_DELAY);
+  #endif
+ 
   // инициализируем дисплей
   initHAL();
   
@@ -287,8 +292,12 @@ return target;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setFont(FONT_TYPE* font)
 {
+  curFont = font;
+  
   #if DISPLAY_USED == DISPLAY_ILI9341
-   halDCDescriptor->setFont(font); 
+   halDCDescriptor->setFont(font);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110 
+   halDCDescriptor->setFont(font);
   #else
     #error "Unsupported display!"
   #endif    
@@ -298,6 +307,8 @@ FONT_TYPE* HalDC::getFont()
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     return halDCDescriptor->getFont();
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    return curFont;
   #else
     #error "Unsupported display!"
   #endif    
@@ -306,9 +317,9 @@ FONT_TYPE* HalDC::getFont()
 void HalDC::fillScreen(COLORTYPE color)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
-	//halDCDescriptor->setColor(color);
-	//halDCDescriptor->fillRect(0, 0, 240, 320, color);
-    halDCDescriptor->fillScr(0,0,0);
+    halDCDescriptor->fillScr(color);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor->fillScr();
   #else
     #error "Unsupported display!"
   #endif    
@@ -318,6 +329,8 @@ void HalDC::setBackColor(COLORTYPE color)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     halDCDescriptor->setBackColor(color);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    //
   #else
     #error "Unsupported display!"
   #endif    
@@ -325,13 +338,21 @@ void HalDC::setBackColor(COLORTYPE color)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 COLORTYPE  HalDC::getBackColor()
 {
-  return halDCDescriptor->getBackColor(); 
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    return halDCDescriptor->getBackColor();
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    return 0;
+  #else
+    #error "Unsupported display!"
+  #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setColor(COLORTYPE color)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     halDCDescriptor->setColor(color);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110 
+    //
   #else
     #error "Unsupported display!"
   #endif    
@@ -339,12 +360,20 @@ void HalDC::setColor(COLORTYPE color)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 COLORTYPE  HalDC::getColor()
 {
+  #if DISPLAY_USED == DISPLAY_ILI9341
   return halDCDescriptor->getColor();
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+  return 0;
+  #else
+    #error "Unsupported display!"
+  #endif  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void  HalDC::drawRect(int x1, int y1, int x2, int y2)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->drawRect(x1,y1,x2,y2);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110    
     halDCDescriptor->drawRect(x1,y1,x2,y2);
   #else
     #error "Unsupported display!"
@@ -355,6 +384,8 @@ void  HalDC::drawRoundRect(int x1, int y1, int x2, int y2)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     halDCDescriptor->drawRoundRect(x1,y1,x2,y2);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110    
+    halDCDescriptor->drawRoundRect(x1,y1,x2,y2);
   #else
     #error "Unsupported display!"
   #endif    
@@ -364,6 +395,8 @@ void  HalDC::fillRect(int x1, int y1, int x2, int y2)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     halDCDescriptor->fillRect(x1,y1,x2,y2);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor->drawRect(x1,y1,x2,y2);
   #else
     #error "Unsupported display!"
   #endif    
@@ -373,19 +406,26 @@ void  HalDC::fillRoundRect(int x1, int y1, int x2, int y2)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     halDCDescriptor->fillRoundRect(x1,y1,x2,y2);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor->drawRoundRect(x1,y1,x2,y2);
   #else
     #error "Unsupported display!"
   #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::updateDisplay()
+{
+  #if DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor->update();
+  #endif
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint16_t HalDC::getFontWidth(FONT_TYPE* font)
 {
-  #if DISPLAY_USED == DISPLAY_ILI9341
-    if(!font)
-      return 0;
-    
+  #if DISPLAY_USED == DISPLAY_ILI9341    
     return READ_FONT_BYTE(0);
-    
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    return READ_FONT_BYTE(0);        
   #else
     #error "Unsupported display!"
   #endif    
@@ -394,10 +434,9 @@ uint16_t HalDC::getFontWidth(FONT_TYPE* font)
 uint16_t HalDC::getFontHeight(FONT_TYPE* font)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
-    if(!font)
-      return 0;
-    
     return READ_FONT_BYTE(1); 
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110    
+    return READ_FONT_BYTE(1);     
   #else
     #error "Unsupported display!"
   #endif    
@@ -407,10 +446,103 @@ int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthO
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
     return printILI(st,x,y,deg,computeStringLengthOnly);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    return printNokia(st,x,y,deg,computeStringLengthOnly);
   #else
     #error "Unsupported display!"
   #endif    
 }
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#if DISPLAY_USED == DISPLAY_NOKIA5110
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int HalDC::printNokia(const char* st, int x, int y, int deg, bool computeStringLengthOnly)
+{
+  int stl, i;
+  stl = strlen(st);
+
+  uint8_t utf_high_byte = 0;
+  uint8_t ch, ch_pos = 0;
+  String toPrint;
+  
+  for (i = 0; i < stl; i++) 
+  {
+    ch = st[i];
+    
+    if ( ch >= 128) 
+    {
+      if ( utf_high_byte == 0 && (ch ==0xD0 || ch == 0xD1)) 
+      {
+        utf_high_byte = ch;
+        continue;
+      } 
+      else 
+      {
+        if ( utf_high_byte == 0xD0) 
+        {
+          if (ch == 0x81) 
+          { //Ё
+            ch = 6;
+          } 
+          else 
+          {
+            if(ch <= 0x95) 
+            {
+              ch -= 0x90;
+            } 
+            else if( ch < 0xB6)
+            {
+              ch -= (0x90 - 1);
+            } 
+            else 
+            {
+              ch -= (0x90 - 2);
+            }
+          }
+          
+          ch = pgm_read_byte((utf8_rus_charmap + ch));
+        
+        } 
+        else if (utf_high_byte == 0xD1) 
+        {
+          if (ch == 0x91) 
+          {//ё
+            ch = 39;
+          } 
+          else 
+          {
+            ch -= 0x80;
+            ch += 50;
+          }
+          
+          ch = pgm_read_byte((utf8_rus_charmap + ch));
+        }
+        
+        utf_high_byte = 0;
+      }
+    } 
+    else 
+    {
+      utf_high_byte = 0;
+    }
+    
+    if(!computeStringLengthOnly)
+    {
+      toPrint += (char) ch;
+    }
+    
+    ++ch_pos;
+  } // for  
+
+  if(!computeStringLengthOnly)
+  {
+    halDCDescriptor->print(toPrint.c_str(),x,y);
+  }
+
+  return ch_pos;
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#endif // DISPLAY_NOKIA5110
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #if DISPLAY_USED == DISPLAY_ILI9341
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

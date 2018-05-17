@@ -11,11 +11,21 @@ class HalDC;
 #include <URTouchCD_ILI9341.h>
 #include <URTouch_ILI9341.h>
 #include "UTFT_Buttons_Rus.h"
+#elif DISPLAY_USED == DISPLAY_NOKIA5110
+#include <LCD5110_Graph.h>
 #else
   #error "Unsupported display!"
 #endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #if DISPLAY_USED == DISPLAY_ILI9341
+
+  #if defined (__arm__)
+    #define READ_FONT_BYTE(x) font[x]  
+  #elif defined(__AVR__)  
+    #define READ_FONT_BYTE(x) pgm_read_byte(&(font[x]))  
+  #endif
+  
+#elif DISPLAY_USED == DISPLAY_NOKIA5110
 
   #if defined (__arm__)
     #define READ_FONT_BYTE(x) font[x]  
@@ -28,6 +38,7 @@ class HalDC;
 #endif  
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #if DISPLAY_USED == DISPLAY_ILI9341
+
   typedef UTFT HalDCDescriptor;
   typedef uint16_t COLORTYPE;
   typedef uint8_t FONT_TYPE;
@@ -44,6 +55,21 @@ class HalDC;
   #define SCREEN_BUTTON_COLORS VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE // цвета для кнопок
   #define SCREEN_BUTTON_COLORS2 VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, 0x4DC9 // цвета для кнопок
   
+#elif DISPLAY_USED == DISPLAY_NOKIA5110
+
+  typedef LCD5110 HalDCDescriptor; 
+  typedef uint16_t COLORTYPE;
+  typedef uint8_t FONT_TYPE;
+  
+  extern FONT_TYPE BigRusFont[];               // какой шрифт используем
+  extern FONT_TYPE SmallRusFont[];             // какой шрифт используем
+  extern FONT_TYPE Various_Symbols_16x32[];    // какой шрифт используем
+  extern FONT_TYPE Various_Symbols_32x32[];    // какой шрифт используем
+
+  #define SCREEN_SMALL_FONT SmallRusFont       // маленький шрифт
+  #define SCREEN_TEXT_COLOR 0
+  #define SCREEN_BACK_COLOR 0
+    
 #else
   #error "Unsupported display!"
 #endif  
@@ -136,12 +162,18 @@ public:
   void  fillRoundRect(int x1, int y1, int x2, int y2);
   uint16_t getFontWidth(FONT_TYPE* font);
   uint16_t getFontHeight(FONT_TYPE* font);
+
+  void updateDisplay();
   
 
 private:
 
 #if DISPLAY_USED == DISPLAY_ILI9341
   int printILI(const char* str,int x, int y, int deg=0, bool computeStringLengthOnly=false);
+#endif
+
+#if DISPLAY_USED == DISPLAY_NOKIA5110
+  int printNokia(const char* st, int x, int y, int deg=0, bool computeStringLengthOnly=false);
 #endif
 
   //String utf8rus(const char* source);
@@ -158,6 +190,8 @@ private:
   #if DISPLAY_USED == DISPLAY_ILI9341
     URTouch* halTouch;
   #endif
+
+  FONT_TYPE* curFont;
 
   
 };

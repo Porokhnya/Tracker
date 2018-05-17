@@ -27,18 +27,19 @@ void MainScreen::onActivate()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doSetup(HalDC* hal)
 {
-
-
-#if DISPLAY_USED == DISPLAY_ILI9341
-
-	screenButtons->addButton(5, 275, 190, 40, "ПРОБА");
-	// screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
-#else
-  #error "Unsupported display!"  
-#endif
-
-
   // первоначальная настройка экрана
+  
+  #if DISPLAY_USED == DISPLAY_ILI9341
+  
+  	screenButtons->addButton(5, 275, 190, 40, "ПРОБА");
+  	// screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
+    
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    //TODO: Тут дополнительная инициализация Nokia 5110, если надо
+  #else
+    #error "Unsupported display!"  
+  #endif
+
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doUpdate(HalDC* hal)
@@ -51,6 +52,7 @@ void MainScreen::doUpdate(HalDC* hal)
   if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
     tempUpdateTimer = millis();
+    bool anyChanges = false;
     
     DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
     
@@ -58,6 +60,7 @@ void MainScreen::doUpdate(HalDC* hal)
     {
       memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));
       drawTemperature(hal);
+      anyChanges = true;
     }
 
     uint16_t thisADCVal = Settings.getAnalogSensorValue();
@@ -65,8 +68,13 @@ void MainScreen::doUpdate(HalDC* hal)
     {
       adcValue = thisADCVal;
       drawADC(hal);
+      anyChanges = true;
     }
-    
+
+    if(anyChanges)
+    {
+      hal->updateDisplay();
+    }
   } // if(millis() - ....
 }
 
@@ -83,7 +91,7 @@ void MainScreen::drawADC(HalDC* hal)
   String adcString = F("АЦП: ");
   adcString += adcValue;
 
-  hal->print(adcString.c_str(),0,fontHeight + 2); 
+  hal->print(adcString.c_str(),0,fontHeight + 2);
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -123,6 +131,8 @@ void MainScreen::doDraw(HalDC* hal)
 
    adcValue = Settings.getAnalogSensorValue();
    drawADC(hal);
+   
+   hal->updateDisplay();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::onButtonPressed(HalDC* hal, int pressedButton)
