@@ -27,7 +27,7 @@
 
 #if DISPLAY_USED == DISPLAY_ILI9341
 
-#include <UTFT_ILI9341.h>
+#include <UTFT.h>
 #include <URTouch_ILI9341.h>
 
 #define UTFT_BUTTONS_VERSION	103
