@@ -1,5 +1,5 @@
-#ifndef OneWire_h
-#define OneWire_h
+#ifndef OneWire_TRACKER_h
+#define OneWire_TRACKER_h
 
 #ifdef __cplusplus
 
