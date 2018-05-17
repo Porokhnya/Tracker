@@ -28,9 +28,12 @@ void MainScreen::onActivate()
 void MainScreen::doSetup(HalDC* hal)
 {
 
+#if DISPLAY_USED == DISPLAY_ILI9341
 	screenButtons->addButton(5, 275, 190, 40, "НАСТРОЙКИ");
 	// screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
-
+#else
+  #error "Unsupported display!"  
+#endif
 
 
   // первоначальная настройка экрана
