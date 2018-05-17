@@ -27,9 +27,9 @@ void MainScreen::onActivate()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doSetup(HalDC* hal)
 {
-
+	//screenButtons->setSymbolFont(Various_Symbols_32x32);
 	screenButtons->addButton(5, 275, 190, 40, "НАСТРОЙКИ");
-	// screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
+	//screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
 
 
 
@@ -38,31 +38,31 @@ void MainScreen::doSetup(HalDC* hal)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doUpdate(HalDC* hal)
 {
-  if(!isActive())
-    return;
-    
-	// обновление экрана
-  static uint32_t tempUpdateTimer = 0;
-  if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
-  {
-    tempUpdateTimer = millis();
-    
-    DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
-    
-    if(memcmp(&thisTemp,&temp,sizeof(DS18B20Temperature)))
-    {
-      memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));
-      drawTemperature(hal);
-    }
+ // if(!isActive())
+ //   return;
+ //   
+	//// обновление экрана
+ // static uint32_t tempUpdateTimer = 0;
+ // if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
+ // {
+ //   tempUpdateTimer = millis();
+ //   
+ //   DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
+ //   
+ //   if(memcmp(&thisTemp,&temp,sizeof(DS18B20Temperature)))
+ //   {
+ //     memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));
+ //     drawTemperature(hal);
+ //   }
 
-    uint16_t thisADCVal = Settings.getAnalogSensorValue();
-    if(thisADCVal != adcValue)
-    {
-      adcValue = thisADCVal;
-      drawADC(hal);
-    }
-    
-  } // if(millis() - ....
+ //   uint16_t thisADCVal = Settings.getAnalogSensorValue();
+ //   if(thisADCVal != adcValue)
+ //   {
+ //     adcValue = thisADCVal;
+ //     drawADC(hal);
+ //   }
+ //   
+ // } // if(millis() - ....
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

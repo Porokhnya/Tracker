@@ -119,7 +119,7 @@ void HalDC::initHAL()
 
   halDCDescriptor->InitLCD(SCREEN_ORIENTATION);
   setBackColor(SCREEN_BACK_COLOR);
-  fillScreen(SCREEN_BACK_COLOR);
+ // fillScreen(SCREEN_BACK_COLOR);
   setFont(SCREEN_SMALL_FONT);
 
   halTouch->InitTouch(SCREEN_ORIENTATION);
@@ -169,7 +169,7 @@ void HalDC::update()
     screen->onActivate();
 
     //Тут очистка экрана
-    fillScreen(SCREEN_BACK_COLOR);
+    //fillScreen(SCREEN_BACK_COLOR);
 
     screen->update(this);
     screen->draw(this);
