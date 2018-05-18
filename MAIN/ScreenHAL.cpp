@@ -290,17 +290,6 @@ return target;
 }
 */
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void HalDC::setSymbolFont(FONT_TYPE* font)
-{
-  #if DISPLAY_USED == DISPLAY_ILI9341
-   halDCDescriptor->setSymbolFont(font);
-  #elif DISPLAY_USED == DISPLAY_NOKIA5110 
-   
-  #else
-    #error "Unsupported display!"
-  #endif     
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::setFont(FONT_TYPE* font)
 {
   curFont = font;
