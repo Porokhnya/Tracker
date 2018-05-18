@@ -36,6 +36,7 @@
 #define TFT_TOUCH_IRQ_PIN 2
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // TFT model
+<<<<<<< HEAD
 
 //#define TFT_MODEL ILI9341_S5P // или ILI9341_S4P пробовать
 #define TFT_MODEL TFT01_24SP // или ILI9341_S4P пробовать
@@ -44,6 +45,9 @@
 //#define RESET 8
 //#define DC 9
 
+=======
+#define TFT_MODEL TFT01_24SP // или ILI9341_S4P пробовать
+>>>>>>> d453a7c79eb359d27a6660228d9ffc2884a318d0
 
 //#define CS 9
 //#define RESET 7
@@ -51,7 +55,6 @@
 //#define LED 11
 //UTFT myGLCD(TFT01_24SP, MOSI, SCK, CS, RESET, DC);
 //UTFT myGLCD(TFT01_24SP, SDI/MOSI, SCK, CS, RESET, DC/RS);
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // TFT RS pin
 #define TFT_RS_PIN MOSI
