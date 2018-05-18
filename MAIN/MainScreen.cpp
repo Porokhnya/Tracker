@@ -90,7 +90,6 @@ void MainScreen::drawADC(HalDC* hal)
   
   String adcString = F("АЦП: ");
   adcString += adcValue;
-
   hal->print(adcString.c_str(),0,fontHeight + 2);
   
 }
@@ -126,6 +125,8 @@ void MainScreen::drawTemperature(HalDC* hal)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doDraw(HalDC* hal)
 {
+
+	hal->print("Test", 0, 0);
   temp = Settings.getDS18B20Temperature();
   drawTemperature(hal);
 
