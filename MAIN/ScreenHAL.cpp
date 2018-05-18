@@ -35,16 +35,16 @@ AbstractHALScreen::AbstractHALScreen(const char* name)
 AbstractHALScreen::~AbstractHALScreen()
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
-    delete screenButtons;
+   // delete screenButtons;
   #endif
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void AbstractHALScreen::setup(HalDC* hal)
 {
 #if DISPLAY_USED == DISPLAY_ILI9341  
-  screenButtons = new UTFT_Buttons_Rus(hal->getUTFT(), hal->getTouch(), rusPrintFunc);
+ /* screenButtons = new UTFT_Buttons_Rus(hal->getUTFT(), hal->getTouch(), rusPrintFunc);
   screenButtons->setTextFont(SCREEN_SMALL_FONT);
-  screenButtons->setButtonColors(SCREEN_BUTTON_COLORS);
+  screenButtons->setButtonColors(SCREEN_BUTTON_COLORS);*/
 #endif  
 
   // тут общие для всех классов настройки
@@ -55,7 +55,7 @@ void AbstractHALScreen::update(HalDC* hal)
 {
   if(isActive())
   {
-    #if DISPLAY_USED == DISPLAY_ILI9341 
+  /*  #if DISPLAY_USED == DISPLAY_ILI9341 
       int pressedButton = screenButtons->checkButtons(buttonPressed);
       
       if(pressedButton != -1)
@@ -63,7 +63,7 @@ void AbstractHALScreen::update(HalDC* hal)
         hal->notifyAction(this);
         onButtonPressed(hal, pressedButton);
       }
-    #endif
+    #endif*/
 
     if(isActive())
       doUpdate(hal);
@@ -79,7 +79,7 @@ void AbstractHALScreen::draw(HalDC* hal)
     if(isActive())
     {
       #if DISPLAY_USED == DISPLAY_ILI9341 
-        screenButtons->drawButtons(buttonDrawed); 
+      //  screenButtons->drawButtons(buttonDrawed); 
       #endif
     }
   }
@@ -120,8 +120,10 @@ void HalDC::initHAL()
 
   halDCDescriptor->InitLCD(SCREEN_ORIENTATION);
   setBackColor(SCREEN_BACK_COLOR);
-  fillScreen(SCREEN_BACK_COLOR);
-  setFont(SCREEN_SMALL_FONT);
+  //fillScreen(SCREEN_BACK_COLOR);
+  extern uint8_t SmallFont[];
+  setFont(SmallFont);
+  //setFont(SCREEN_SMALL_FONT);
 
   halTouch->InitTouch(SCREEN_ORIENTATION);
   halTouch->setPrecision(TOUCH_PRECISION);
@@ -146,9 +148,14 @@ void HalDC::setup()
 	//#define LED 11
 
   #if DISPLAY_USED == DISPLAY_ILI9341
-  
 
-    halDCDescriptor = new UTFT(TFT_MODEL,TFT_RS_PIN,TFT_WR_PIN,TFT_CS_PIN,TFT_RST_PIN,TFT_DC_PIN);
+#define CS 9
+#define RESET 7
+#define DC 8
+#define LED 11
+//	UTFT myGLCD(TFT01_24SP, MOSI, SCK, CS, RESET, DC);
+
+    halDCDescriptor = new UTFT(TFT01_24SP, MOSI, SCK, CS, RESET, DC);//(TFT_MODEL,TFT_RS_PIN,TFT_WR_PIN,TFT_CS_PIN,TFT_RST_PIN,TFT_DC_PIN);
     halTouch = new URTouch(TFT_TOUCH_CLK_PIN,TFT_TOUCH_CS_PIN,TFT_TOUCH_DIN_PIN,TFT_TOUCH_DOUT_PIN,TFT_TOUCH_IRQ_PIN);
 
   #elif DISPLAY_USED == DISPLAY_NOKIA5110
@@ -453,6 +460,7 @@ uint16_t HalDC::getFontHeight(FONT_TYPE* font)
 int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthOnly)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341
+	//halDCDescriptor->print(st,x,y);
     return printILI(st,x,y,deg,computeStringLengthOnly);
   #elif DISPLAY_USED == DISPLAY_NOKIA5110
     return printNokia(st,x,y,deg,computeStringLengthOnly);
