@@ -119,15 +119,25 @@ void HalDC::initHAL()
   //Тут инициализация/переинициализация дисплея
   #if DISPLAY_USED == DISPLAY_ILI9341
 
-  halDCDescriptor->InitLCD(SCREEN_ORIENTATION);
-  setBackColor(SCREEN_BACK_COLOR);
-  setFont(SCREEN_SMALL_FONT);
-
-  halTouch->InitTouch(SCREEN_ORIENTATION);
-  halTouch->setPrecision(TOUCH_PRECISION);
+      halDCDescriptor->InitLCD(SCREEN_ORIENTATION);
+    
+      #if DISPLAY_INIT_DELAY > 0
+        delay(DISPLAY_INIT_DELAY);
+      #endif
+      
+      setBackColor(SCREEN_BACK_COLOR);
+      setFont(SCREEN_SMALL_FONT);
+    
+      halTouch->InitTouch(SCREEN_ORIENTATION);
+      halTouch->setPrecision(TOUCH_PRECISION);
 
   #elif DISPLAY_USED == DISPLAY_NOKIA5110
       halDCDescriptor->InitLCD();
+
+      #if DISPLAY_INIT_DELAY > 0
+        delay(DISPLAY_INIT_DELAY);
+      #endif
+      
       setFont(SCREEN_SMALL_FONT);
   #else
     #error "Unsupported display!"
@@ -149,9 +159,6 @@ void HalDC::setup()
     #error "Unsupported display!"
   #endif
 
-  #if DISPLAY_INIT_DELAY > 0
-    delay(DISPLAY_INIT_DELAY);
-  #endif
  
   // инициализируем дисплей
   initHAL();
