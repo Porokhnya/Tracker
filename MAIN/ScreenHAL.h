@@ -149,6 +149,8 @@ public:
   // HARDWARE HAL
   int print(const char* str,int x, int y, int deg=0, bool computeStringLengthOnly=false);
 
+
+  void setSymbolFont(FONT_TYPE* font);
   void setFont(FONT_TYPE* font);
   FONT_TYPE* getFont();
   void setBackColor(COLORTYPE color);
