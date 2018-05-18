@@ -15,7 +15,7 @@ const int ledPin = 11;
 void setup()
 {
   Serial.begin(9600);
-  while(!Serial);
+//  while(!Serial);
 
   Serial.println("Test");
   delay(1000);
