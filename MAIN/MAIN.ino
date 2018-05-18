@@ -21,13 +21,15 @@ void screenAction(AbstractHALScreen* screen)
    screenIdleTimer = millis();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+#define LED 11
 //#define Serial SERIAL_PORT_USBVIRTUAL     // Подключить USB порт
 
 void setup() 
 {
   Serial.begin(SERIAL_SPEED);
  // while(!Serial);
+  pinMode(LED, OUTPUT);
+  digitalWrite(LED, LOW);
 
    DBGLN(F("INIT settings..."));
   Settings.begin();

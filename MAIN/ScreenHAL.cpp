@@ -138,8 +138,16 @@ void HalDC::setup()
 {
   //создание библиотеки для экрана
 
+	//UTFT myGLCD(TFT01_24SP, MOSI, SCK, CS, RESET, DC);
+	//UTFT myGLCD(TFT01_24SP, SDI/MOSI, SCK, CS, RESET, DC/RS);
+	//#define CS 9
+	//#define RESET 7
+	//#define DC 8
+	//#define LED 11
+
   #if DISPLAY_USED == DISPLAY_ILI9341
   
+
     halDCDescriptor = new UTFT(TFT_MODEL,TFT_RS_PIN,TFT_WR_PIN,TFT_CS_PIN,TFT_RST_PIN,TFT_DC_PIN);
     halTouch = new URTouch(TFT_TOUCH_CLK_PIN,TFT_TOUCH_CS_PIN,TFT_TOUCH_DIN_PIN,TFT_TOUCH_DOUT_PIN,TFT_TOUCH_IRQ_PIN);
 
