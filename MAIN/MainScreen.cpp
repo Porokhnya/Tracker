@@ -126,7 +126,6 @@ void MainScreen::drawTemperature(HalDC* hal)
 void MainScreen::doDraw(HalDC* hal)
 {
 
-	hal->print("Test", 0, 0);
   temp = Settings.getDS18B20Temperature();
   drawTemperature(hal);
 
