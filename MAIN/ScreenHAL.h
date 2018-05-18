@@ -50,6 +50,7 @@ class HalDC;
   #define SCREEN_BACK_COLOR VGA_BLACK          // цвет фона
   #define SCREEN_TEXT_COLOR VGA_WHITE          // цвет шрифта
   #define SCREEN_SMALL_FONT SmallRusFont       // маленький шрифт
+  #define SCREEN_SYMBOL_FONT Various_Symbols_16x32  // символьный шрифт
   #define SCREEN_ORIENTATION  PORTRAIT         // ориентация экрана вертикальная
   #define TOUCH_PRECISION PREC_HI
   #define SCREEN_BUTTON_COLORS VGA_WHITE, VGA_GRAY, VGA_WHITE, VGA_RED, VGA_BLUE // цвета для кнопок

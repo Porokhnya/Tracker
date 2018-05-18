@@ -44,6 +44,7 @@ void AbstractHALScreen::setup(HalDC* hal)
 #if DISPLAY_USED == DISPLAY_ILI9341  
   screenButtons = new UTFT_Buttons_Rus(hal->getUTFT(), hal->getTouch(), rusPrintFunc);
   screenButtons->setTextFont(SCREEN_SMALL_FONT);
+  screenButtons->setSymbolFont(SCREEN_SYMBOL_FONT);
   screenButtons->setButtonColors(SCREEN_BUTTON_COLORS);
 #endif  
 
