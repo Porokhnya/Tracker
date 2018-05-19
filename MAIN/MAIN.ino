@@ -22,7 +22,7 @@ void screenAction(AbstractHALScreen* screen)
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #define LED 11
-#define Serial SERIAL_PORT_USBVIRTUAL     // Подключить USB порт
+//#define Serial SERIAL_PORT_USBVIRTUAL     // Подключить USB порт
 
 void setup() 
 {
