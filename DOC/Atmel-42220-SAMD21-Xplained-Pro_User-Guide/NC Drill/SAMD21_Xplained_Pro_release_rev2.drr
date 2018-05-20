@@ -1,0 +1,18 @@
+---------------------------------------------------------------------------
+NCDrill File Report For: SAMD21_Xplained_Pro.PcbDoc   09.12.2013  10:44:09
+---------------------------------------------------------------------------
+
+Layer Pair : Top Layer LF-signals to Bottom Layer LF-signals
+ASCII RoundHoles File : SAMD21_Xplained_Pro.TXT
+EIA File   : SAMD21_Xplained_Pro.DRL
+
+Tool         Hole Size           Hole Type     Hole Count Plated       Tool Travel
+---------------------------------------------------------------------------
+T1        7.9mil (0.20066mm)       Round          20               1.22 Inch (30.96 mm)
+T2        9.8mil (0.24892mm)       Round          176              29.60 Inch (751.93 mm)
+T3        39.4mil (1.00076mm)      Round          69               13.34 Inch (338.75 mm)
+T4        106.3mil (2.70002mm)     Round          4                8.11 Inch (205.90 mm)
+---------------------------------------------------------------------------
+Totals                                            269              52.27 Inch (1327.54 mm)
+
+Total Processing Time (hh:mm:ss) : 00:00:01
