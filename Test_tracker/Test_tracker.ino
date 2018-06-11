@@ -11,24 +11,25 @@
 
 #define Serial SERIAL_PORT_USBVIRTUAL             // USB SAMD21G18A
 
-Uart Serial2(&sercom2, 3, 4, SERCOM_RX_PAD_1, UART_TX_PAD_0);
-void SERCOM2_Handler()
+Uart Serial2(&sercom2, 3, 4, SERCOM_RX_PAD_1, UART_TX_PAD_0);  // Подключить Serial2
+void SERCOM2_Handler()                                         // Подключить Serial2 
 {
 	Serial2.IrqHandler();
 }
 
 
-bool PWR_LCD = true;
+bool PWR_LCD = true;                                         // Признак включения подсветки дисплея
 
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
+//----------------- Переменные для проверки часов ------------
 #define BUFF_MAX 128
 uint8_t time[8];
 char recv[BUFF_MAX];
 unsigned int recv_size = 0;
 unsigned long prev, interval = 1000;
 void parse_cmd(char *cmd, int cmdsize);
-
+//----------------------------------------------------
 
 LCD5110 myGLCD(7, A4, 5, 30, 31); // объявляем номера пинов LCD
 
@@ -36,22 +37,22 @@ LCD5110 myGLCD(7, A4, 5, 30, 31); // объявляем номера пинов 
 extern uint8_t SmallFont[];       // малый шрифт (из библиотеки)
 extern uint8_t MediumNumbers[];   // средний шрифт для цифр (из библиотеки)
 
-#define  ledPin  13                                 // Назначение светодиодов на плате
-#define  PWR_On_In 38
+#define  ledPin  13                                 // Назначение светодиода на плате
+#define  PWR_On_In 38                               // Вход признака включения питания
 
-#define  Key_line_In11 11
-#define  Key_line_In12 12
+#define  Key_line_In11 11                           // Линия приема сигнала от 1 ряда кнопок 
+#define  Key_line_In12 12                           // Линия приема сигнала от 2 ряда кнопок 
 
-#define  Key_line_Out0 0 
-#define  Key_line_Out1 1
-#define  Key_line_Out2 2
-#define  Key_line_Out3 3
+#define  Key_line_Out0 0                            // МСР 0 Линия выдачи сигнала на кнопки
+#define  Key_line_Out1 1                            // МСР 1 Линия выдачи сигнала на кнопки
+#define  Key_line_Out2 2                            // МСР 2 Линия выдачи сигнала на кнопки
+#define  Key_line_Out3 3                            // МСР 3 Линия выдачи сигнала на кнопки
 
-#define  LCD_led 4
-#define  PWR_On_Out 5
-#define  PWR_WiFi 6
+#define  LCD_led 4                                  // МСР 4 Вывод подсветки питания дисплея
+#define  PWR_On_Out 5                               // МСР 5 Вывод поддержки включения питания. Отключение питания контроллера                        
+#define  PWR_WiFi 6                                 // МСР 4 Вывод управления питанием модуля WiFi
 
-extern "C" char *sbrk(int i);
+extern "C" char *sbrk(int i);                       // Для измерения свободной памяти 
 
 Adafruit_MCP23017 mcp;
 
@@ -264,13 +265,13 @@ void info()
 
 void setup()
 {
-	Serial.begin(115200);
-	Serial1.begin(115200);
-	Serial2.begin(115200);
+	Serial.begin(115200);               // USB
+	Serial1.begin(115200);              // WiFi
+	Serial2.begin(115200);              // Возможно принтер
 
 	//Assign pins 3 & 4 SERCOM functionality
-	pinPeripheral(3, PIO_SERCOM_ALT);
-	pinPeripheral(4, PIO_SERCOM_ALT);
+	pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
+	pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2
 
 	delay(1000);
 
@@ -279,16 +280,16 @@ void setup()
 	Wire.begin();
 	mcp.begin(1);      // use default address 0
 
-	mcp.pinMode(LCD_led, OUTPUT);
-	mcp.digitalWrite(LCD_led, LOW);
+	mcp.pinMode(LCD_led, OUTPUT);             // Настроить подсветку дисплея
+	mcp.digitalWrite(LCD_led, LOW);           // Включить подсветку дисплея
 
-	mcp.pinMode(Key_line_Out0, OUTPUT);
-	mcp.pinMode(Key_line_Out1, OUTPUT);
-	mcp.pinMode(Key_line_Out2, OUTPUT);
-	mcp.pinMode(Key_line_Out3, OUTPUT);
+	mcp.pinMode(Key_line_Out0, OUTPUT);       // Настроить кнопки
+	mcp.pinMode(Key_line_Out1, OUTPUT);       // Настроить кнопки
+	mcp.pinMode(Key_line_Out2, OUTPUT);       // Настроить кнопки
+	mcp.pinMode(Key_line_Out3, OUTPUT);       // Настроить кнопки
 
-	mcp.pinMode(PWR_On_Out, OUTPUT);
-	mcp.pinMode(PWR_WiFi, OUTPUT);
+	mcp.pinMode(PWR_On_Out, OUTPUT);          // Настроить поддержку питания
+	mcp.pinMode(PWR_WiFi, OUTPUT);            // Настроить поддержку питания WiFi
 
 
 	mcp.digitalWrite(Key_line_Out0, LOW);
@@ -296,8 +297,8 @@ void setup()
 	mcp.digitalWrite(Key_line_Out2, LOW);
 	mcp.digitalWrite(Key_line_Out3, LOW);
 
-	mcp.digitalWrite(PWR_On_Out, LOW);
-	mcp.digitalWrite(PWR_WiFi, LOW);
+	mcp.digitalWrite(PWR_On_Out, LOW);        // Настроить канал управления питанием
+	mcp.digitalWrite(PWR_WiFi, LOW);          // Включить питание WiFi
 
 	myGLCD.InitLCD();                                // инициализация LCD дисплея
 
@@ -307,7 +308,7 @@ void setup()
 	pinMode(PWR_On_In, INPUT);
 	digitalWrite(PWR_On_In, HIGH);
 
-	if (digitalRead(PWR_On_In) == LOW) mcp.digitalWrite(PWR_On_Out, HIGH); //Serial.println("On");
+	if (digitalRead(PWR_On_In) == LOW) mcp.digitalWrite(PWR_On_Out, HIGH); // Проверить кнопку питания. Если нажата - включить поддержку
 
 	Serial.print("FreeRam");
 	Serial.println(FreeRam());
@@ -321,15 +322,16 @@ void setup()
 	digitalWrite(ledPin, HIGH);
 	delay(100);
 	digitalWrite(ledPin, LOW);*/
-
+	// ---------------------------- Настраиваем часы -------------------------------------------------
 	DS3231_init(DS3231_INTCN);
 	memset(recv, 0, BUFF_MAX);
 
+	//----------------------------- Подключить прерывание от кновок ------------------------
 	attachInterrupt(Key_line_In11, test_key, FALLING);
 	attachInterrupt(Key_line_In12, test_key, FALLING);
 
 	//-------------------------------------------------------------------------
-
+	//-------------------------- Настроить SD --------------------------------------------------
 
 	// use uppercase in hex and use 0X base prefix
 	cout << uppercase << showbase << endl;
@@ -353,13 +355,13 @@ void setup()
 #endif  // !USE_SDIO  
 
 
-	//----------------------------------------------------------------------------
+	
 
 	SD_info();
 	myGLCD.print("SDcard", LEFT, 10);                      // выводим в строке 1 
 	myGLCD.print(String(0.000512*cardSize), RIGHT, 10);                      // выводим в строке 1 
 
-	//------------------------------------------------------------------------------
+	//----------------------------- Настроить датчик -------------------------------------------------
 	Serial.println("\nSi7021 test!");
 
 	if (!sensor.begin()) {
@@ -388,26 +390,28 @@ void loop(void)
 		Serial1.write(inByte);
 	}
 
-	if (digitalRead(PWR_On_In) == LOW) mcp.digitalWrite(PWR_On_Out, HIGH); //Serial.println("On");
+	if (digitalRead(PWR_On_In) == LOW) mcp.digitalWrite(PWR_On_Out, HIGH);  // Проверить кнопку питания. Если нажата - включить поддержку
 
-	if (num_key == 6)
+	if (num_key == 6)                                                       // Управление подсветкой дисплея  
 	{
 		mcp.digitalWrite(LCD_led, PWR_LCD);
 		PWR_LCD = !PWR_LCD;
 		num_key = 0;
 	}
-	else if (num_key == 7)
+	else if (num_key == 7)                                                  // Выключить питание. Подключена только для тестирования
 	{
 		mcp.digitalWrite(LCD_led, HIGH);
 		mcp.digitalWrite(PWR_WiFi, HIGH);
 		mcp.digitalWrite(PWR_On_Out, LOW);
 	}
-	else if(num_key != 0)
+	else if(num_key != 0)                                                  // Вывети в порт номер нажатой кнопки. Для тестирования.
 	{
 		Serial.println(num_key);
 		num_key = 0;
 	}
 
+
+	// ---------------------------- Отобразить время  -------------------------------------------------
 	char in;
 	char buff[BUFF_MAX];
 	unsigned long now = millis();
