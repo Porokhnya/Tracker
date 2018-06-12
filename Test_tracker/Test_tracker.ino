@@ -19,7 +19,7 @@ void SERCOM2_Handler()                                         // Подключ
 
 
 bool PWR_LCD = true;                                         // Признак включения подсветки дисплея
-
+bool PWR_ESP = true;                                         // Признак включения подсветки дисплея
 Adafruit_Si7021 sensor = Adafruit_Si7021();
 
 //----------------- Переменные для проверки часов ------------
@@ -362,13 +362,13 @@ void setup()
 	myGLCD.print(String(0.000512*cardSize), RIGHT, 10);                      // выводим в строке 1 
 
 	//----------------------------- Настроить датчик -------------------------------------------------
-	Serial.println("\nSi7021 test!");
+	/*Serial.println("\nSi7021 test!");
 
 	if (!sensor.begin()) {
 		Serial.println("Did not find Si7021 sensor!");
 		while (true);
 	}
-
+*/
 	//------------------------------------------------------------------------------
 
 	Serial.println("==============================");
@@ -391,20 +391,26 @@ void loop(void)
 	}
 
 	if (digitalRead(PWR_On_In) == LOW) mcp.digitalWrite(PWR_On_Out, HIGH);  // Проверить кнопку питания. Если нажата - включить поддержку
-
-	if (num_key == 6)                                                       // Управление подсветкой дисплея  
+	if (num_key == 5)                                                  // Выключить питание. Подключена только для тестирования
+	{
+		mcp.digitalWrite(PWR_WiFi, PWR_ESP);
+		PWR_ESP = !PWR_ESP;
+		//num_key = 0;
+	}
+	else if (num_key == 6)                                                       // Управление подсветкой дисплея  
 	{
 		mcp.digitalWrite(LCD_led, PWR_LCD);
 		PWR_LCD = !PWR_LCD;
-		num_key = 0;
+		//num_key = 0;
 	}
 	else if (num_key == 7)                                                  // Выключить питание. Подключена только для тестирования
 	{
 		mcp.digitalWrite(LCD_led, HIGH);
 		mcp.digitalWrite(PWR_WiFi, HIGH);
 		mcp.digitalWrite(PWR_On_Out, LOW);
+		//num_key = 0;
 	}
-	else if(num_key != 0)                                                  // Вывети в порт номер нажатой кнопки. Для тестирования.
+	if(num_key != 0)                                                  // Вывети в порт номер нажатой кнопки. Для тестирования.
 	{
 		Serial.println(num_key);
 		num_key = 0;
