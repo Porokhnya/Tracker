@@ -265,7 +265,7 @@ void info()
 
 void setup()
 {
-	Serial.begin(115200);               // USB
+	Serial.begin(19200);               // USB
 	Serial1.begin(115200);              // WiFi
 	Serial2.begin(115200);              // Возможно принтер
 
