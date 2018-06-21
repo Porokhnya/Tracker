@@ -22,9 +22,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "Arduino.h" 
 #include <stdio.h>
 #include <SPI.h>
-//#include <adk.h>
-//#include <MouseController.h>
-
 #include <usbhub.h>
 #include "wiring_constants.h"
 #include "pgmstrings.h"
