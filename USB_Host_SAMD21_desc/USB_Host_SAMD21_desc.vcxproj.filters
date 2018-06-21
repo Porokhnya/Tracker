@@ -21,5 +21,11 @@
     <ClInclude Include="__vm\.USB_Host_SAMD21_desc.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
+=======
+    <ClInclude Include="pgmstrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+>>>>>>> 47dbeb6c29dc2d5d298c07f336d78c22a607155c
   </ItemGroup>
 </Project>

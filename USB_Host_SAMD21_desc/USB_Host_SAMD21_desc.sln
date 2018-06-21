@@ -1,7 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
+<<<<<<< HEAD
 VisualStudioVersion = 15.0.27004.2010
+=======
+VisualStudioVersion = 15.0.27130.2010
+>>>>>>> 47dbeb6c29dc2d5d298c07f336d78c22a607155c
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "USB_Host_SAMD21_desc", "USB_Host_SAMD21_desc.vcxproj", "{C5F80730-F44F-4478-BDAE-6634EFC2CA88}"
 EndProject
@@ -20,6 +24,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
+<<<<<<< HEAD
 		SolutionGuid = {224EB8CA-D307-4029-9AD7-A453FB28A2BA}
+=======
+		SolutionGuid = {DE666D5C-3FD9-4D0D-8A08-9F7A6A0B56ED}
+>>>>>>> 47dbeb6c29dc2d5d298c07f336d78c22a607155c
 	EndGlobalSection
 EndGlobal
