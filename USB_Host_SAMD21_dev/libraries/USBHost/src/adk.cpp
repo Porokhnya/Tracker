@@ -15,7 +15,7 @@ Web      :  http://www.circuitsathome.com
 e-mail   :  support@circuitsathome.com
 */
 
-/* Google ADK interface */
+/* Google ADK interface Èםעונפויס Google ADK*/
 
 #include "adk.h"
 
