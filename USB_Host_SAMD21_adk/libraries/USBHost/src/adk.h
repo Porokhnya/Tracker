@@ -30,9 +30,14 @@ e-mail   :  support@circuitsathome.com
 // #define ADB_PID   0x2D01
 
 // JCB
-#define ADK_VID   0x04E8
-#define ADK_PID   0x685C
-#define ADB_PID   0x685D
+//#define ADK_VID   0x04E8
+//#define ADK_PID   0x685C
+//#define ADB_PID   0x685D
+
+
+#define ADK_VID   0x2717
+#define ADK_PID   0xFF40
+#define ADB_PID   0x0318
 
 #define XOOM  //enables repeating getProto() and getConf() attempts
               //necessary for slow devices such as Motorola XOOM
