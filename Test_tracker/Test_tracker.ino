@@ -266,8 +266,8 @@ void info()
 void setup()
 {
 	Serial.begin(19200);               // USB
-	Serial1.begin(115200);              // WiFi
-	Serial2.begin(115200);              // Возможно принтер
+	Serial1.begin(115200);             // WiFi
+	Serial2.begin(19200);              // Возможно для принтера
 
 	//Assign pins 3 & 4 SERCOM functionality
 	pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
@@ -362,13 +362,13 @@ void setup()
 	myGLCD.print(String(0.000512*cardSize), RIGHT, 10);                      // выводим в строке 1 
 
 	//----------------------------- Настроить датчик -------------------------------------------------
-	/*Serial.println("\nSi7021 test!");
+	Serial.println("\nSi7021 test!");
 
 	if (!sensor.begin()) {
 		Serial.println("Did not find Si7021 sensor!");
 		while (true);
 	}
-*/
+
 	//------------------------------------------------------------------------------
 
 	Serial.println("==============================");
@@ -447,6 +447,8 @@ void loop(void)
 
 		prev = now;
 	}
+
+	// ++++++++++++++++++++ Настройка часов через Serial ++++++++++++++++++++++++++++
 
 	//if (Serial.available() > 0) 
 	//{
