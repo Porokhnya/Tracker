@@ -51,6 +51,10 @@ extern uint8_t MediumNumbers[];   // средний шрифт для цифр (
 #define  LCD_led 4                                  // МСР 4 Вывод подсветки питания дисплея
 #define  PWR_On_Out 5                               // МСР 5 Вывод поддержки включения питания. Отключение питания контроллера                        
 #define  PWR_WiFi 6                                 // МСР 4 Вывод управления питанием модуля WiFi
+#define  Key_door A2                                // Концевик двери                      
+#define  Sensor_temp A1                             // Температурный аналоговый сенсор
+
+bool state_door = false;
 
 extern "C" char *sbrk(int i);                       // Для измерения свободной памяти 
 
@@ -307,6 +311,8 @@ void setup()
 
 	pinMode(PWR_On_In, INPUT);
 	digitalWrite(PWR_On_In, HIGH);
+	pinMode(Key_door, INPUT);
+
 
 	if (digitalRead(PWR_On_In) == LOW) mcp.digitalWrite(PWR_On_Out, HIGH); // Проверить кнопку питания. Если нажата - включить поддержку
 
@@ -416,6 +422,21 @@ void loop(void)
 		num_key = 0;
 	}
 
+	// Проверить концевик двери
+	if (digitalRead(Key_door) == LOW)
+	{
+		//state_door = true;
+		myGLCD.print("Off", RIGHT, 40);
+	}
+	else
+	{
+		//state_door = false;
+		myGLCD.print("On ", RIGHT, 40);
+	}
+
+	int sensor = analogRead(Sensor_temp);
+	myGLCD.print("    ", RIGHT, 30);
+	myGLCD.print(String(sensor), RIGHT, 30);
 
 	// ---------------------------- Отобразить время  -------------------------------------------------
 	char in;
