@@ -426,12 +426,12 @@ void loop(void)
 	if (digitalRead(Key_door) == LOW)
 	{
 		//state_door = true;
-		myGLCD.print("Off", RIGHT, 40);
+		myGLCD.print("On ", RIGHT, 40);
 	}
 	else
 	{
 		//state_door = false;
-		myGLCD.print("On ", RIGHT, 40);
+		myGLCD.print("Off", RIGHT, 40);
 	}
 
 	int sensor = analogRead(Sensor_temp);
