@@ -7,7 +7,7 @@
 #include "Adafruit_MCP23017.h"
 #include "ds3231.h"
 #include "SdFat.h"
-#include "Adafruit_Si7021.h"
+//#include "Adafruit_Si7021.h"
 
 #define Serial SERIAL_PORT_USBVIRTUAL             // USB SAMD21G18A
 
@@ -20,7 +20,7 @@ void SERCOM2_Handler()                                         // Подключ
 
 bool PWR_LCD = true;                                         // Признак включения подсветки дисплея
 bool PWR_ESP = true;                                         // Признак включения подсветки дисплея
-Adafruit_Si7021 sensor = Adafruit_Si7021();
+//Adafruit_Si7021 sensor = Adafruit_Si7021();
 
 //----------------- Переменные для проверки часов ------------
 #define BUFF_MAX 128
@@ -258,10 +258,10 @@ void info()
 
 	//Serial.print("Humidity:    "); Serial.print(sensor.readHumidity(), 2);
 	//Serial.print("\tTemperature: "); Serial.println(sensor.readTemperature(), 2);
-	myGLCD.print("H:", LEFT, 20);                      // выводим в строке 1 
-	myGLCD.print(String(sensor.readHumidity()), 11, 20);                      // выводим в строке 1 
-	myGLCD.print("T:", 43, 20);                      // выводим в строке 1 
-	myGLCD.print(String(sensor.readTemperature()), RIGHT, 20);                      // выводим в строке 1 
+	//myGLCD.print("H:", LEFT, 20);                      // выводим в строке 1 
+	//myGLCD.print(String(sensor.readHumidity()), 11, 20);                      // выводим в строке 1 
+	//myGLCD.print("T:", 43, 20);                      // выводим в строке 1 
+	//myGLCD.print(String(sensor.readTemperature()), RIGHT, 20);                      // выводим в строке 1 
 	myGLCD.update();
 }
 
@@ -368,12 +368,12 @@ void setup()
 	myGLCD.print(String(0.000512*cardSize), RIGHT, 10);                      // выводим в строке 1 
 
 	//----------------------------- Настроить датчик -------------------------------------------------
-	Serial.println("\nSi7021 test!");
+//	Serial.println("\nSi7021 test!");
 
-	if (!sensor.begin()) {
+	/*if (!sensor.begin()) {
 		Serial.println("Did not find Si7021 sensor!");
 		while (true);
-	}
+	}*/
 
 	//------------------------------------------------------------------------------
 

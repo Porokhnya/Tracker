@@ -5,267 +5,232 @@
 			all non-arduino files created by visual micro and all visual studio project or solution files can be freely deleted and are not required to compile a sketch (do not delete your own code!).
 			note: debugger breakpoints are stored in '.sln' or '.asln' files, knowledge of last uploaded breakpoints is stored in the upload.vmps.xml file. Both files are required to continue a previous debug session without needing to compile and upload again
 	
-	Hardware: Arduino/Genuino Zero (Native USB Port), Platform=samd, Package=arduino
+	Hardware: Arduino Due (Programming Port), Platform=sam, Package=arduino
 */
 
 #if defined(_VMICRO_INTELLISENSE)
 
 #ifndef _VSARDUINO_H_
 #define _VSARDUINO_H_
-#define F_CPU 48000000L
+#define printf iprintf
+#define F_CPU 84000000L
 #define ARDUINO 10805
-#define ARDUINO_SAMD_ZERO
-#define ARDUINO_ARCH_SAMD
-#define __SAMD21G18A__
+#define ARDUINO_SAM_DUE
+#define ARDUINO_ARCH_SAM
+#define __SAM3X8E__
 #define USB_VID 0x2341
-#define USB_PID 0x804d
+#define USB_PID 0x003e
 #define USBCON
 #define __cplusplus 201103L
-#define __cplusplus 201103L
-#define __PTRDIFF_TYPE__ int
 #define __ARM__
 #define __arm__
 #define __inline__
 #define __asm__(x)
-#define __attribute__(x)
 #define __extension__
 #define __ATTR_PURE__
 #define __ATTR_CONST__
 #define __inline__
 #define __volatile__
-typedef int __SIZE_TYPE__;
-typedef int __builtin_va_list;
-#define _Pragma(x)
+#define _HAVE_STDC
 #define __ASM
 #define __INLINE
+#define __builtin_va_list void
 
-typedef long Sercom;
-#define SERCOM0           ((Sercom   *)0x42000800UL) 
-#define SERCOM1           ((Sercom   *)0x42000800UL) 
-#define SERCOM2           ((Sercom   *)0x42000800UL) 
-#define SERCOM3           ((Sercom   *)0x42000800UL) 
-#define SERCOM4           ((Sercom   *)0x42000800UL) 
-#define SERCOM5           ((Sercom   *)0x42000800UL) 
-typedef long Tcc;
-#define TCC0              ((Tcc      *)0x42002000UL)
-#define TCC1              ((Tcc      *)0x42002000UL)
-#define TCC2              ((Tcc      *)0x42002000UL)
-typedef long Tc;
-#define TC1               ((Tc       *)0x42002C00UL)
-#define TC2               ((Tc       *)0x42003000UL)
-#define TC3               ((Tc       *)0x42003400UL)
-#define TC4               ((Tc       *)0x42003400UL)
-#define TC5               ((Tc       *)0x42003400UL)
-
-typedef long UsbHostDescBank;
-typedef struct {
-	UsbHostDescBank           HostDescBank[2];
-} UsbHostDescriptor;
-
-#define __IO
-#define RoReg8
-#define __I
-#define USB_EPT_NUM
-#define Reserved1[]
-#define Reserved2[]
-#define Reserved3[]
-#define Reserved4[]
-#define Reserved5[]
-#define Reserved6[]
-#define Reserved7[]
-#define Reserved8[]
-#define Reserved9[]
-#define Reserved10[]
-
-#define TC_INST_NUM 999
-#define TCC_INST_NUM 999
-
-
-#define prog_void
-#define PGM_VOID_P int
+#define __attribute__(noinline)
 
 typedef unsigned char byte;
-extern "C" void __cxa_pure_virtual() { ; }
+extern "C" void __cxa_pure_virtual() {;}
+
+#define __INTPTR_TYPE__ long
+#define __INT32_TYPE__ long
+#define _Pragma(x) pragma
+
+
+#if (defined(ARDUINO_SAM_DUE))
+	#include "sam3xa.h"
+#endif
+
 #include <arduino.h>
 #include <pins_arduino.h> 
 #include <variant.h> 
 #include <variant.cpp> 
+# define cli()  __asm__ __volatile__ ("cli" ::: "memory")
+# define sei()  __asm__ __volatile__ ("sei" ::: "memory")
 
-#ifndef __math_68881
-extern double atan(double);
-extern double cos(double);
-extern double sin(double);
-extern double tan(double);
-extern double tanh(double);
-extern double frexp(double, int *);
-extern double modf(double, double *);
-extern double ceil(double);
-extern double fabs(double);
-extern double floor(double);
-#endif 
+/* GNU gcc specific functions */
+/** \brief  Enable IRQ Interrupts
 
-#ifndef __math_68881
-extern double acos(double);
-extern double asin(double);
-extern double atan2(double, double);
-extern double cosh(double);
-extern double sinh(double);
-extern double exp(double);
-extern double ldexp(double, int);
-extern double log(double);
-extern double log10(double);
-extern double pow(double, double);
-extern double sqrt(double);
-extern double fmod(double, double);
-#endif 
+This function enables IRQ interrupts by clearing the I-bit in the CPSR.
+Can only be executed in Privileged modes.
+*/
+__attribute__((always_inline)) static __INLINE void __enable_irq(void)
+{
+	__ASM volatile ("cpsie i");
+}
 
-extern int __isinff(float x);
-extern int __isinfd(double x);
-extern int __isnanf(float x);
-extern int __isnand(double x);
-extern int __fpclassifyf(float x);
-extern int __fpclassifyd(double x);
-extern int __signbitf(float x);
-extern int __signbitd(double x);
-extern int finitel(long double);
-extern double infinity(void);
-extern double nan(const char *);
-extern int finite(double);
-extern double copysign(double, double);
-extern double logb(double);
-extern int ilogb(double);
 
-extern double asinh(double);
-extern double cbrt(double);
-extern double nextafter(double, double);
-extern double rint(double);
-extern double scalbn(double, int);
+/** \brief  Disable IRQ Interrupts
 
-extern double exp2(double);
-extern double scalbln(double, long int);
-extern double tgamma(double);
-extern double nearbyint(double);
-extern long int lrint(double);
-extern long long int llrint(double);
-extern long int lround(double);
-extern long long int llround(double);
-extern double trunc(double);
-extern double remquo(double, double, int *);
-extern double fdim(double, double);
-extern double fmax(double, double);
-extern double fmin(double, double);
-extern double fma(double, double, double);
+This function disables IRQ interrupts by setting the I-bit in the CPSR.
+Can only be executed in Privileged modes.
+*/
+__attribute__((always_inline)) static __INLINE void __disable_irq(void)
+{
+	__ASM volatile ("cpsid i");
+}
 
-#ifndef __math_68881
-extern double log1p(double);
-extern double expm1(double);
-#endif 
 
-extern double acosh(double);
-extern double atanh(double);
-extern double remainder(double, double);
-extern double gamma(double);
-extern double lgamma(double);
-extern double erf(double);
-extern double erfc(double);
-extern double log2(double);
+/** \brief  Get Control Register
 
-#ifndef __math_68881
-extern double hypot(double, double);
-#endif
+This function returns the content of the Control Register.
 
-extern float atanf(float);
-extern float cosf(float);
-extern float sinf(float);
-extern float tanf(float);
-extern float tanhf(float);
-extern float frexpf(float, int *);
-extern float modff(float, float *);
-extern float ceilf(float);
-extern float fabsf(float);
-extern float floorf(float);
+\return               Control Register value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_CONTROL(void)
+{
+	uint32_t result;
 
-#ifndef _REENT_ONLY
-extern float acosf(float);
-extern float asinf(float);
-extern float atan2f(float, float);
-extern float coshf(float);
-extern float sinhf(float);
-extern float expf(float);
-extern float ldexpf(float, int);
-extern float logf(float);
-extern float log10f(float);
-extern float powf(float, float);
-extern float sqrtf(float);
-extern float fmodf(float, float);
-#endif 
+	__ASM volatile ("MRS %0, control" : "=r" (result));
+	return(result);
+}
 
-extern float exp2f(float);
-extern float scalblnf(float, int);
-extern float tgammaf(float);
-extern float nearbyintf(float);
-extern long int lrintf(float);
-extern long long int llrintf(float);
-extern float roundf(float);
-extern long int lroundf(float);
-extern long long int llroundf(float);
-extern float truncf(float);
-extern float remquof(float, float, int *);
-extern float fdimf(float, float);
-extern float fmaxf(float, float);
-extern float fminf(float, float);
-extern float fmaf(float, float, float);
 
-extern float infinityf(void);
-extern float nanf(const char *);
-extern int finitef(float);
-extern float copysignf(float, float);
-extern float logbf(float);
-extern int ilogbf(float);
+/** \brief  Set Control Register
 
-extern float asinhf(float);
-extern float cbrtf(float);
-extern float nextafterf(float, float);
-extern float rintf(float);
-extern float scalbnf(float, int);
-extern float log1pf(float);
-extern float expm1f(float);
+This function writes the given value to the Control Register.
 
-#ifndef _REENT_ONLY
-extern float acoshf(float);
-extern float atanhf(float);
-extern float remainderf(float, float);
-extern float gammaf(float);
-extern float lgammaf(float);
-extern float erff(float);
-extern float erfcf(float);
-extern float log2f(float);
-extern float hypotf(float, float);
-#endif 
+\param [in]    control  Control Register value to set
+*/
+__attribute__((always_inline)) static __INLINE void __set_CONTROL(uint32_t control)
+{
+	__ASM volatile ("MSR control, %0" : : "r" (control));
+}
 
-extern double drem(double, double);
-extern void sincos(double, double *, double *);
-extern double gamma_r(double, int *);
-extern double lgamma_r(double, int *);
 
-extern double y0(double);
-extern double y1(double);
-extern double yn(int, double);
-extern double j0(double);
-extern double j1(double);
-extern double jn(int, double);
+/** \brief  Get ISPR Register
 
-extern float dremf(float, float);
-extern void sincosf(float, float *, float *);
-extern float gammaf_r(float, int *);
-extern float lgammaf_r(float, int *);
+This function returns the content of the ISPR Register.
 
-extern float y0f(float);
-extern float y1f(float);
-extern float ynf(int, float);
-extern float j0f(float);
-extern float j1f(float);
-extern float jnf(int, float);
+\return               ISPR Register value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_IPSR(void)
+{
+	uint32_t result;
+
+	__ASM volatile ("MRS %0, ipsr" : "=r" (result));
+	return(result);
+}
+
+
+/** \brief  Get APSR Register
+
+This function returns the content of the APSR Register.
+
+\return               APSR Register value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_APSR(void)
+{
+	uint32_t result;
+
+	__ASM volatile ("MRS %0, apsr" : "=r" (result));
+	return(result);
+}
+
+
+/** \brief  Get xPSR Register
+
+This function returns the content of the xPSR Register.
+
+\return               xPSR Register value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_xPSR(void)
+{
+	uint32_t result;
+
+	__ASM volatile ("MRS %0, xpsr" : "=r" (result));
+	return(result);
+}
+
+
+/** \brief  Get Process Stack Pointer
+
+This function returns the current value of the Process Stack Pointer (PSP).
+
+\return               PSP Register value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_PSP(void)
+{
+	register uint32_t result;
+
+	__ASM volatile ("MRS %0, psp\n"  : "=r" (result));
+	return(result);
+}
+
+
+/** \brief  Set Process Stack Pointer
+
+This function assigns the given value to the Process Stack Pointer (PSP).
+
+\param [in]    topOfProcStack  Process Stack Pointer value to set
+*/
+__attribute__((always_inline)) static __INLINE void __set_PSP(uint32_t topOfProcStack)
+{
+	__ASM volatile ("MSR psp, %0\n" : : "r" (topOfProcStack));
+}
+
+
+/** \brief  Get Main Stack Pointer
+
+This function returns the current value of the Main Stack Pointer (MSP).
+
+\return               MSP Register value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_MSP(void)
+{
+	register uint32_t result;
+
+	__ASM volatile ("MRS %0, msp\n" : "=r" (result));
+	return(result);
+}
+
+
+/** \brief  Set Main Stack Pointer
+
+This function assigns the given value to the Main Stack Pointer (MSP).
+
+\param [in]    topOfMainStack  Main Stack Pointer value to set
+*/
+__attribute__((always_inline)) static __INLINE void __set_MSP(uint32_t topOfMainStack)
+{
+	__ASM volatile ("MSR msp, %0\n" : : "r" (topOfMainStack));
+}
+
+
+/** \brief  Get Priority Mask
+
+This function returns the current state of the priority mask bit from the Priority Mask Register.
+
+\return               Priority Mask value
+*/
+__attribute__((always_inline)) static __INLINE uint32_t __get_PRIMASK(void)
+{
+	uint32_t result;
+
+	__ASM volatile ("MRS %0, primask" : "=r" (result));
+	return(result);
+}
+
+
+/** \brief  Set Priority Mask
+
+This function assigns the given value to the Priority Mask Register.
+
+\param [in]    priMask  Priority Mask
+*/
+__attribute__((always_inline)) static __INLINE void __set_PRIMASK(uint32_t priMask)
+{
+	__ASM volatile ("MSR primask, %0" : : "r" (priMask));
+}
 
 
 #include "Test_tracker1.ino"
