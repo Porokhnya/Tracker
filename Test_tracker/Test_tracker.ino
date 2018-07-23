@@ -1,6 +1,6 @@
 
-#include <Arduino.h>         // required before wiring_private.h
-#include "wiring_private.h"  // pinPeripheral() function
+#include <Arduino.h>                                            // required before wiring_private.h
+#include "wiring_private.h"                                     // pinPeripheral() function
 #include "Wire.h"
 #include <SPI.h>
 #include <LCD5110_Graph.h>  
@@ -9,7 +9,7 @@
 #include "SdFat.h"
 //#include "Adafruit_Si7021.h"
 
-#define Serial SERIAL_PORT_USBVIRTUAL             // USB SAMD21G18A
+#define Serial SERIAL_PORT_USBVIRTUAL                          // USB SAMD21G18A
 
 Uart Serial2(&sercom2, 3, 4, SERCOM_RX_PAD_1, UART_TX_PAD_0);  // Подключить Serial2
 void SERCOM2_Handler()                                         // Подключить Serial2 
@@ -19,7 +19,7 @@ void SERCOM2_Handler()                                         // Подключ
 
 
 bool PWR_LCD = true;                                         // Признак включения подсветки дисплея
-bool PWR_ESP = true;                                         // Признак включения подсветки дисплея
+bool PWR_ESP = true;                                         // Признак включения ESP8266
 //Adafruit_Si7021 sensor = Adafruit_Si7021();
 
 //----------------- Переменные для проверки часов ------------
@@ -31,11 +31,10 @@ unsigned long prev, interval = 1000;
 void parse_cmd(char *cmd, int cmdsize);
 //----------------------------------------------------
 
-LCD5110 myGLCD(7, A4, 5, 30, 31); // объявляем номера пинов LCD
+LCD5110 myGLCD(7, A4, 5, 30, 31);                   // объявляем номера пинов LCD
 
-
-extern uint8_t SmallFont[];       // малый шрифт (из библиотеки)
-extern uint8_t MediumNumbers[];   // средний шрифт для цифр (из библиотеки)
+extern uint8_t SmallFont[];                         // малый шрифт (из библиотеки)
+extern uint8_t MediumNumbers[];                     // средний шрифт для цифр (из библиотеки)
 
 #define  ledPin  13                                 // Назначение светодиода на плате
 #define  PWR_On_In 38                               // Вход признака включения питания
