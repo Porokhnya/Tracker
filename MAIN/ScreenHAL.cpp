@@ -133,13 +133,13 @@ void HalDC::initHAL()
 
   #elif DISPLAY_USED == DISPLAY_NOKIA5110
       halDCDescriptor->InitLCD();
-
+	  halDCDescriptor->setContrast(40);
       #if DISPLAY_INIT_DELAY > 0
         delay(DISPLAY_INIT_DELAY);
       #endif
       
       setFont(SCREEN_SMALL_FONT);
-  #else
+	 #else
     #error "Unsupported display!"
   #endif  
 }
@@ -162,8 +162,7 @@ void HalDC::setup()
  
   // инициализируем дисплей
   initHAL();
-  
-  
+   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::update()

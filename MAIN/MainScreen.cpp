@@ -35,7 +35,9 @@ void MainScreen::doSetup(HalDC* hal)
   	// screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
     
   #elif DISPLAY_USED == DISPLAY_NOKIA5110
+
     //TODO: Тут дополнительная инициализация Nokia 5110, если надо
+
   #else
     #error "Unsupported display!"  
   #endif
