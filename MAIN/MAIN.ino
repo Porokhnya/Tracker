@@ -7,7 +7,6 @@
 // подключаем наши экраны
 #include "MainScreen.h"              // Главный экран
 #include "Buttons.h"              // наши железные кнопки
-#include "InfoDiodes.h"           // информационные диоды
 #include "FileUtils.h"
 #include "Settings.h"
 #include "CoreCommandBuffer.h"
@@ -52,9 +51,6 @@ void setup()
   
   // переключаемся на первый экран
   Screen.switchToScreen("Main");
-
-  // настраиваем информационные диоды
-  InfoDiodes.begin();
 
   // настраиваем железные кнопки
   Buttons.begin();
