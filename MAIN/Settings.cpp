@@ -84,8 +84,8 @@ void SettingsClass::begin()
   MCP.digitalWrite(Key_line_Out2, LOW);
   MCP.digitalWrite(Key_line_Out3, LOW);
   //----------------------------- Подключить прерывание от кнопок ----------------------
-  attachInterrupt(Key_line_In11, test_key, FALLING);
-  attachInterrupt(Key_line_In12, test_key, FALLING);
+  attachInterrupt(digitalPinToInterrupt(Key_line_In11), test_key, FALLING);
+  attachInterrupt(digitalPinToInterrupt(Key_line_In12), test_key, FALLING);
 
 
   // настраиваем канал подсветки дисплея

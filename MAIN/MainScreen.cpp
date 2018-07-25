@@ -50,6 +50,13 @@ void MainScreen::doUpdate(HalDC* hal)
 {
   if(!isActive())
     return;
+
+
+   // выводим код нажатой клавиши
+   String pk = F("KEY: "); pk += Settings.getPressedKey();
+   uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+   hal->print(pk.c_str(), 0, fontHeight*4 + 2*4);
+   hal->updateDisplay();
     
 	// обновление экрана
   static uint32_t tempUpdateTimer = 0;

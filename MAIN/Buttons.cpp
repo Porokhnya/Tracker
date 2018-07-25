@@ -1,6 +1,7 @@
 //--------------------------------------------------------------------------------------------------
 #include "Buttons.h"
 #include "CONFIG.h"
+#include "Settings.h"
 //--------------------------------------------------------------------------------------------------
 ButtonsList Buttons;
 //--------------------------------------------------------------------------------------------------
@@ -11,21 +12,37 @@ ButtonsList::ButtonsList()
 //--------------------------------------------------------------------------------------------------
 void ButtonsList::begin()
 {
- // redButton.begin(BUTTON_RED);
+  // redButton.begin(BUTTON_RED);
 
   inited = true;
 }
 //--------------------------------------------------------------------------------------------------
 void ButtonsList::update()
 {
-  if(!inited)
+  if (!inited)
     return;
 
-  /*  
-  if(redButton.isClicked())
+  int pressedKey = Settings.getPressedKey();
+  if (pressedKey > 0)
   {
-    DBGLN(F("RED BUTTON CLICKED!"));
+    if (pressedKey == 4)
+    {
+      // выключаем подсветку
+      Settings.displayBacklight(false);
+
+    }
+    else
+    {
+      // включаем подсветку
+      Settings.displayBacklight(true);
+    }
   }
+
+  /*
+    if(redButton.isClicked())
+    {
+    DBGLN(F("RED BUTTON CLICKED!"));
+    }
   */
 
 }
