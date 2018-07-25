@@ -10,7 +10,9 @@ MainScreen::MainScreen() : AbstractHALScreen("Main")
 {
   mainScreen = this;
   adcValue = 0;
-//  memset(&temp,0,sizeof(DS18B20Temperature));
+  memset(&lastSensorData,0,sizeof(lastSensorData));
+  lastSensorData.temperature = NO_TEMPERATURE_DATA;
+  lastSensorData.humidity = NO_TEMPERATURE_DATA;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::onDeactivate()
@@ -56,15 +58,14 @@ void MainScreen::doUpdate(HalDC* hal)
     tempUpdateTimer = millis();
     bool wantDrawTemp = false, wantDrawADC = false;
 
-    /*
-    DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
     
-    if(memcmp(&thisTemp,&temp,sizeof(DS18B20Temperature)))
+    Si7021Data thisData = Settings.readSensor();
+    
+    if(memcmp(&thisData,&lastSensorData,sizeof(Si7021Data)))
     {
-      memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));      
+      memcpy(&lastSensorData,&thisData,sizeof(Si7021Data));      
       wantDrawTemp = true;
     }
-    */
 
     uint16_t thisADCVal = Settings.getAnalogSensorValue();
     if(thisADCVal != adcValue)
@@ -97,7 +98,7 @@ void MainScreen::drawADC(HalDC* hal)
   
   String adcString = F("АЦП: ");
   adcString += adcValue;
-  hal->print(adcString.c_str(),0,fontHeight + 2);
+  hal->print(adcString.c_str(),0,fontHeight*2 + 2*2);
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,24 +110,43 @@ void MainScreen::drawTemperature(HalDC* hal)
 
   // рисуем температуру
   String tempString = F("Темп: ");
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
   
-  if(true)//temp.Value == NO_TEMPERATURE_DATA) // нет температуры
+  
+  if(lastSensorData.temperature == NO_TEMPERATURE_DATA) // нет температуры
   {
     tempString += F("<нет>");
   }
   else // есть температура
-  {
-   /* 
-    tempString += temp.Value;
+  {   
+    tempString += lastSensorData.temperature;
     tempString += ".";
 
-    if(temp.Fract < 10)
+    if(lastSensorData.temperatureFract < 10)
       tempString += '0';
 
-    tempString += temp.Fract;
-  */
+    tempString += lastSensorData.temperatureFract;
   }
   hal->print(tempString.c_str(), 0, 0);
+
+  tempString = F("Влажн: ");
+
+ if(lastSensorData.humidity == NO_TEMPERATURE_DATA) // нет влажности
+  {
+    tempString += F("<нет>");
+  }
+  else // есть влажность
+  {   
+    tempString += lastSensorData.humidity;
+    tempString += ".";
+
+    if(lastSensorData.humidityFract < 10)
+      tempString += '0';
+
+    tempString += lastSensorData.humidityFract;
+    tempString += '%';
+  }
+  hal->print(tempString.c_str(), 0, fontHeight + 2);
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

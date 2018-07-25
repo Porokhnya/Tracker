@@ -25,6 +25,10 @@ void SettingsClass::begin()
   eeprom = new AT24C64();
   analogSensorValue = 0;
   sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
+  memset(&si7021Data,0,sizeof(si7021Data));
+  
+  si7021Data.temperature = NO_TEMPERATURE_DATA;
+  si7021Data.humidity = NO_TEMPERATURE_DATA;
 
   // подключаем MCP на адрес 1
   MCP.begin(1);
@@ -51,6 +55,9 @@ void SettingsClass::begin()
   // выключаем питание ESP
   espPower(false);
 
+
+  // подключаем Si7021
+  si7021.begin();
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -60,6 +67,16 @@ void SettingsClass::update()
   {
     sensorsUpdateTimer = millis();
     analogSensorValue = analogRead(ANALOG_SENSOR_PIN);
+
+    float t = si7021.readTemperature()*100.0;
+    int32_t iT = t;
+    si7021Data.temperature = iT/100;
+    si7021Data.temperatureFract = iT%100;
+
+    t = si7021.readHumidity()*100.0;
+    iT = t;
+    si7021Data.humidity = iT/100;
+    si7021Data.humidityFract = iT%100;
   }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

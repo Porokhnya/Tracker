@@ -5,6 +5,7 @@
 #include "AT24CX.h"
 #include "DS3231.h"
 #include "MCP23017.h"
+#include <Adafruit_Si7021.h>
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef struct
 {
@@ -12,6 +13,18 @@ typedef struct
   float voltage;
   
 } VoltageData;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#define NO_TEMPERATURE_DATA -127
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef struct
+{
+  int8_t temperature;
+  uint8_t temperatureFract;
+  
+  int8_t humidity;
+  uint8_t humidityFract;
+  
+} Si7021Data;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class SettingsClass 
 {
@@ -22,7 +35,7 @@ class SettingsClass
     void begin();
     void update();
 
-    //DS18B20Temperature getDS18B20Temperature() { return dsTemp; }
+    Si7021Data readSensor() { return si7021Data; }
     uint16_t getAnalogSensorValue() { return analogSensorValue; }
 
     void displayBacklight(bool bOn);
@@ -36,6 +49,8 @@ class SettingsClass
     uint16_t analogSensorValue;
 
     Adafruit_MCP23017 MCP;
+    Adafruit_Si7021 si7021;
+    Si7021Data si7021Data;
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
