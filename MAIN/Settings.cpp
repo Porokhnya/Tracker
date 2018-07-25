@@ -10,6 +10,16 @@ SettingsClass::SettingsClass()
   analogSensorValue = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::displayBacklight(bool bOn)
+{
+  MCP.digitalWrite(4, bOn ? LOW : HIGH);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::espPower(bool bOn)
+{
+  MCP.digitalWrite(6,bOn ? LOW : HIGH);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
   eeprom = new AT24C64();
@@ -27,8 +37,9 @@ void SettingsClass::begin()
 
   // настраиваем канал подсветки дисплея
   MCP.pinMode(4,OUTPUT);
+
   // включаем подсветку дисплея
-  MCP.digitalWrite(4,LOW);
+  displayBacklight(true);
 
 
   // настраиваем "подхват питания"
@@ -38,7 +49,7 @@ void SettingsClass::begin()
   MCP.pinMode(6,OUTPUT);
 
   // выключаем питание ESP
-  MCP.digitalWrite(6,HIGH);
+  espPower(false);
 
   
 }

@@ -23,10 +23,8 @@ class SettingsClass
     //DS18B20Temperature getDS18B20Temperature() { return dsTemp; }
     uint16_t getAnalogSensorValue() { return analogSensorValue; }
 
-
-    Adafruit_MCP23017 MCP;
-
-  
+    void displayBacklight(bool bOn);
+    void espPower(bool bOn);
     
   private:
 
@@ -34,6 +32,8 @@ class SettingsClass
     DS3231Temperature coreTemp;
     uint32_t sensorsUpdateTimer;
     uint16_t analogSensorValue;
+
+    Adafruit_MCP23017 MCP;
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
