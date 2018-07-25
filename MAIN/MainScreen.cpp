@@ -10,7 +10,7 @@ MainScreen::MainScreen() : AbstractHALScreen("Main")
 {
   mainScreen = this;
   adcValue = 0;
-  memset(&temp,0,sizeof(DS18B20Temperature));
+//  memset(&temp,0,sizeof(DS18B20Temperature));
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::onDeactivate()
@@ -55,7 +55,8 @@ void MainScreen::doUpdate(HalDC* hal)
   {
     tempUpdateTimer = millis();
     bool wantDrawTemp = false, wantDrawADC = false;
-    
+
+    /*
     DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
     
     if(memcmp(&thisTemp,&temp,sizeof(DS18B20Temperature)))
@@ -63,6 +64,7 @@ void MainScreen::doUpdate(HalDC* hal)
       memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));      
       wantDrawTemp = true;
     }
+    */
 
     uint16_t thisADCVal = Settings.getAnalogSensorValue();
     if(thisADCVal != adcValue)
@@ -108,13 +110,13 @@ void MainScreen::drawTemperature(HalDC* hal)
   // рисуем температуру
   String tempString = F("Темп: ");
   
-  if(temp.Value == NO_TEMPERATURE_DATA) // нет температуры
+  if(true)//temp.Value == NO_TEMPERATURE_DATA) // нет температуры
   {
     tempString += F("<нет>");
   }
   else // есть температура
   {
-    
+   /* 
     tempString += temp.Value;
     tempString += ".";
 
@@ -122,7 +124,7 @@ void MainScreen::drawTemperature(HalDC* hal)
       tempString += '0';
 
     tempString += temp.Fract;
-
+  */
   }
   hal->print(tempString.c_str(), 0, 0);
   
@@ -133,7 +135,7 @@ void MainScreen::doDraw(HalDC* hal)
 
   hal->clearScreen();
   
-  temp = Settings.getDS18B20Temperature();
+  //temp = Settings.getDS18B20Temperature();  
   drawTemperature(hal);
 
    adcValue = Settings.getAnalogSensorValue();
