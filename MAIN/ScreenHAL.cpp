@@ -1,11 +1,18 @@
 #include "CONFIG.h"
 #include "ScreenHAL.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#if DISPLAY_USED == DISPLAY_NOKIA5110
+const uint8_t utf8_rus_charmap[] PROGMEM = {
+  0xc0,0xc1,0xc2,0xc3,0xc4,0xc5,0xa8,0xc6,0xc7,0xc8,0xc9,0xca,0xcb,0xcc,0xcd,0xce,0xcf,0xd0,0xd1,0xd2,0xd3,0xd4,0xd5,0xd6,0xd7,0xd8,0xd9,0xda,0xdb,0xdc,0xdd,0xde,0xdf,
+  0xe0,0xe1,0xe2,0xe3,0xe4,0xe5,0xb8,0xe6,0xe7,0xe8,0xe9,0xea,0xeb,0xec,0xed,0xee,0xef,0xf0,0xf1,0xf2,0xf3,0xf4,0xf5,0xf6,0xf7,0xf8,0xf9,0xfa,0xfb,0xfc,0xfd,0xfe,0xff
+  };
+#endif
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#if DISPLAY_USED == DISPLAY_ILI9341
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 const uint8_t utf8_rus_charmap[] PROGMEM = {'A',128,'B',129,130,'E',131,132,133,134,135,'K',136,'M','H','O',137,'P','C','T',138,139,'X',140,141,
 142,143,144,145,146,147,148,149,'a',150,151,152,153,'e',154,155,156,157,158,159,160,161,162,'o',163,'p','c',164,'y',165,'x',166,167,168,169,170,
 171,172,173,174,175};
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#if DISPLAY_USED == DISPLAY_ILI9341
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void buttonPressed(int btn) // вызывается по нажатию на кнопку - тут можно пищать баззером, например)
 {
@@ -132,13 +139,18 @@ void HalDC::initHAL()
       halTouch->setPrecision(TOUCH_PRECISION);
 
   #elif DISPLAY_USED == DISPLAY_NOKIA5110
-      halDCDescriptor->InitLCD();
-	  halDCDescriptor->setContrast(40);
+  
+      halDCDescriptor->InitLCD(60);
+     
       #if DISPLAY_INIT_DELAY > 0
         delay(DISPLAY_INIT_DELAY);
       #endif
       
       setFont(SCREEN_SMALL_FONT);
+
+      print("Привет Hello",0,0);
+      halDCDescriptor->update();
+        
 	 #else
     #error "Unsupported display!"
   #endif  
@@ -463,6 +475,7 @@ int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthO
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int HalDC::printNokia(const char* st, int x, int y, int deg, bool computeStringLengthOnly)
 {
+  
   int stl, i;
   stl = strlen(st);
 

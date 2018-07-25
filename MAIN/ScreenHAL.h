@@ -62,12 +62,12 @@ class HalDC;
   typedef uint16_t COLORTYPE;
   typedef uint8_t FONT_TYPE;
   
-  extern FONT_TYPE BigRusFont[];               // какой шрифт используем
-  extern FONT_TYPE SmallRusFont[];             // какой шрифт используем
+  extern FONT_TYPE BigFont[];               // какой шрифт используем
+  extern FONT_TYPE SmallFont[];             // какой шрифт используем
   extern FONT_TYPE Various_Symbols_16x32[];    // какой шрифт используем
   extern FONT_TYPE Various_Symbols_32x32[];    // какой шрифт используем
 
-  #define SCREEN_SMALL_FONT SmallRusFont       // маленький шрифт
+  #define SCREEN_SMALL_FONT SmallFont       // маленький шрифт
   #define SCREEN_TEXT_COLOR 0
   #define SCREEN_BACK_COLOR 0
     
