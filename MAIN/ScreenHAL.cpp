@@ -148,8 +148,8 @@ void HalDC::initHAL()
       
       setFont(SCREEN_SMALL_FONT);
 
-      print("Привет Hello",0,0);
-      halDCDescriptor->update();
+    //  print("Привет Hello",0,0);
+   //   halDCDescriptor->update();
         
 	 #else
     #error "Unsupported display!"
