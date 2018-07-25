@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <wiring_private.h>
 #include "CONFIG.h"
 #include "ScreenHAL.h"
 #include "DS3231.h"               // подключаем часы
