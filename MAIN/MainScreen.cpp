@@ -54,27 +54,30 @@ void MainScreen::doUpdate(HalDC* hal)
   if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
     tempUpdateTimer = millis();
-    bool anyChanges = false;
+    bool wantDrawTemp = false, wantDrawADC = false;
     
     DS18B20Temperature thisTemp = Settings.getDS18B20Temperature();
     
     if(memcmp(&thisTemp,&temp,sizeof(DS18B20Temperature)))
     {
-      memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));
-      drawTemperature(hal);
-      anyChanges = true;
+      memcpy(&temp,&thisTemp,sizeof(DS18B20Temperature));      
+      wantDrawTemp = true;
     }
 
     uint16_t thisADCVal = Settings.getAnalogSensorValue();
     if(thisADCVal != adcValue)
     {
-      adcValue = thisADCVal;
-      drawADC(hal);
-      anyChanges = true;
+      adcValue = thisADCVal;      
+      wantDrawADC = true;
     }
 
-    if(anyChanges)
+    if(wantDrawTemp || wantDrawADC)
     {
+      hal->clearScreen();
+      
+      drawTemperature(hal);
+      drawADC(hal);
+          
       hal->updateDisplay();
     }
   } // if(millis() - ....
@@ -103,11 +106,11 @@ void MainScreen::drawTemperature(HalDC* hal)
   hal->setColor(SCREEN_TEXT_COLOR);
 
   // рисуем температуру
-  String tempString = F("Температура: ");
+  String tempString = F("Темп: ");
   
   if(temp.Value == NO_TEMPERATURE_DATA) // нет температуры
   {
-    tempString += F("<no data>");
+    tempString += F("<нет>");
   }
   else // есть температура
   {
@@ -128,6 +131,8 @@ void MainScreen::drawTemperature(HalDC* hal)
 void MainScreen::doDraw(HalDC* hal)
 {
 
+  hal->clearScreen();
+  
   temp = Settings.getDS18B20Temperature();
   drawTemperature(hal);
 
