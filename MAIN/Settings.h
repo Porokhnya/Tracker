@@ -40,8 +40,13 @@ class SettingsClass
 
     void displayBacklight(bool bOn);
     void espPower(bool bOn);
+
+    int getPressedKey() {return pressedKey; }
     
   private:
+
+    static void test_key();
+    static int pressedKey;
 
     AT24C64* eeprom;
     DS3231Temperature coreTemp;

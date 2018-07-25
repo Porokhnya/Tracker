@@ -4,6 +4,47 @@
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass Settings;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int SettingsClass::pressedKey = 0;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::test_key()
+{
+  pressedKey = 0;
+  
+  Settings.MCP.digitalWrite(Key_line_Out0, HIGH);
+  Settings.MCP.digitalWrite(Key_line_Out1, HIGH);
+  Settings.MCP.digitalWrite(Key_line_Out2, HIGH);
+  Settings.MCP.digitalWrite(Key_line_Out3, HIGH);
+  
+  for (int i = 0; i < 4; i++)
+  {
+      Settings.MCP.digitalWrite(i, LOW);
+      
+          if (digitalRead(Key_line_In11) == LOW)
+          {
+              pressedKey = 4 - i;
+              break;
+          }
+          
+      Settings.MCP.digitalWrite(i, HIGH);
+  }
+  
+  for (int i = 0; i < 4; i++)
+  {
+      Settings.MCP.digitalWrite(i, LOW);
+      
+          if (digitalRead(Key_line_In12) == LOW)
+          {
+              pressedKey = 7 - i;
+              break;
+          }
+  }
+  
+  Settings.MCP.digitalWrite(Key_line_Out0, LOW);
+  Settings.MCP.digitalWrite(Key_line_Out1, LOW);
+  Settings.MCP.digitalWrite(Key_line_Out2, LOW);
+  Settings.MCP.digitalWrite(Key_line_Out3, LOW);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass::SettingsClass()
 {
   eeprom = NULL;
@@ -34,10 +75,18 @@ void SettingsClass::begin()
   MCP.begin(1);
 
   // настраиваем каналы клавиатуры
-  MCP.pinMode(0,INPUT);
-  MCP.pinMode(1,INPUT);
-  MCP.pinMode(2,INPUT);
-  MCP.pinMode(3,INPUT);
+  MCP.pinMode(Key_line_Out0, OUTPUT); // Настроить кнопки
+  MCP.pinMode(Key_line_Out1, OUTPUT); // Настроить кнопки
+  MCP.pinMode(Key_line_Out2, OUTPUT); // Настроить кнопки
+  MCP.pinMode(Key_line_Out3, OUTPUT); // Настроить кнопки
+  MCP.digitalWrite(Key_line_Out0, LOW);
+  MCP.digitalWrite(Key_line_Out1, LOW);
+  MCP.digitalWrite(Key_line_Out2, LOW);
+  MCP.digitalWrite(Key_line_Out3, LOW);
+  //----------------------------- Подключить прерывание от кнопок ----------------------
+  attachInterrupt(Key_line_In11, test_key, FALLING);
+  attachInterrupt(Key_line_In12, test_key, FALLING);
+
 
   // настраиваем канал подсветки дисплея
   MCP.pinMode(4,OUTPUT);
