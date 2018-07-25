@@ -15,6 +15,31 @@ void SettingsClass::begin()
   eeprom = new AT24C64();
   analogSensorValue = 0;
   sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
+
+  // подключаем MCP на адрес 1
+  MCP.begin(1);
+
+  // настраиваем каналы клавиатуры
+  MCP.pinMode(0,INPUT);
+  MCP.pinMode(1,INPUT);
+  MCP.pinMode(2,INPUT);
+  MCP.pinMode(3,INPUT);
+
+  // настраиваем канал подсветки дисплея
+  MCP.pinMode(4,OUTPUT);
+  // включаем подсветку дисплея
+  MCP.digitalWrite(4,LOW);
+
+
+  // настраиваем "подхват питания"
+  MCP.pinMode(5,OUTPUT);
+
+  // настраиваем управление питанием ESP
+  MCP.pinMode(6,OUTPUT);
+
+  // выключаем питание ESP
+  MCP.digitalWrite(6,HIGH);
+
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
