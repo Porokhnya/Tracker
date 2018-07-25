@@ -164,6 +164,8 @@ public:
   uint16_t getFontWidth(FONT_TYPE* font);
   uint16_t getFontHeight(FONT_TYPE* font);
 
+  void clearScreen();
+
   void updateDisplay();
   
 

@@ -10,7 +10,7 @@ class ButtonsList
     void begin();
     void update();
 
-    Button redButton;
+//    Button redButton;
 
 private:
 

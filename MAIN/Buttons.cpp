@@ -12,7 +12,7 @@ ButtonsList::ButtonsList()
 //--------------------------------------------------------------------------------------------------
 void ButtonsList::begin()
 {
-  redButton.begin(BUTTON_RED);
+ // redButton.begin(BUTTON_RED);
 
   inited = true;
 }
@@ -21,11 +21,13 @@ void ButtonsList::update()
 {
   if(!inited)
     return;
-    
+
+  /*  
   if(redButton.isClicked())
   {
     DBGLN(F("RED BUTTON CLICKED!"));
   }
+  */
 
 }
 //--------------------------------------------------------------------------------------------------

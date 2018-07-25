@@ -43,12 +43,12 @@ void setup()
   SDInit::InitSD();
   DBGLN(F("SD inited."));
   
-
   DBGLN(F("Init screen..."));
   Screen.setup();
-
+  
   DBGLN(F("Add main screen...")); 
   Screen.addScreen(MainScreen::create());           // первый экран покажется по умолчанию
+
   
   // переключаемся на первый экран
   Screen.switchToScreen("Main");
@@ -61,6 +61,7 @@ void setup()
 
   screenIdleTimer = millis();
   Screen.onAction(screenAction);
+
 
   DBGLN(F("Inited."));
 

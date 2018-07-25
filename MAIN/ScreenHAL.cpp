@@ -192,7 +192,7 @@ void HalDC::update()
     screen->onActivate();
 
     //Тут очистка экрана
-   fillScreen(SCREEN_BACK_COLOR);
+   clearScreen();
 
     screen->update(this);
     screen->draw(this);
@@ -330,6 +330,17 @@ FONT_TYPE* HalDC::getFont()
   #else
     #error "Unsupported display!"
   #endif    
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void HalDC::clearScreen()
+{
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    halDCDescriptor->fillScr(SCREEN_BACK_COLOR);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor->clrScr();
+  #else
+    #error "Unsupported display!"
+  #endif      
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::fillScreen(COLORTYPE color)
