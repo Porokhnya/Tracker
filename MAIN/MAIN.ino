@@ -21,7 +21,7 @@ void screenAction(AbstractHALScreen* screen)
    screenIdleTimer = millis();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#define LED 11
+#define LED 13
 #define Serial SERIAL_PORT_USBVIRTUAL     // Подключить USB порт
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Uart Serial2(&sercom2, 3, 4, SERCOM_RX_PAD_1, UART_TX_PAD_0); // Подключить Serial2
@@ -40,7 +40,7 @@ void setup()
   //Assign pins 3 & 4 SERCOM functionality
   pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
-  
+  delay(500);
  // while(!Serial);
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);

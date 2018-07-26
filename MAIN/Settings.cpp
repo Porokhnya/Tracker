@@ -22,6 +22,7 @@ void SettingsClass::test_key()
           if (digitalRead(Key_line_In11) == LOW)
           {
               pressedKey = 4 - i;
+			  while (digitalRead(Key_line_In11) == LOW) {}
               break;
           }
           
@@ -35,6 +36,7 @@ void SettingsClass::test_key()
           if (digitalRead(Key_line_In12) == LOW)
           {
               pressedKey = 7 - i;
+			  while (digitalRead(Key_line_In12) == LOW) {}
               break;
           }
   }
@@ -43,6 +45,8 @@ void SettingsClass::test_key()
   Settings.MCP.digitalWrite(Key_line_Out1, LOW);
   Settings.MCP.digitalWrite(Key_line_Out2, LOW);
   Settings.MCP.digitalWrite(Key_line_Out3, LOW);
+  DBGLN(pressedKey);
+  //SerialUSB.println(pressedKey);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass::SettingsClass()
@@ -53,12 +57,12 @@ SettingsClass::SettingsClass()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::displayBacklight(bool bOn)
 {
-  MCP.digitalWrite(4, bOn ? LOW : HIGH);  
+  MCP.digitalWrite(LCD_led, bOn ? LOW : HIGH);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::espPower(bool bOn)
 {
-  MCP.digitalWrite(6,bOn ? LOW : HIGH);
+  MCP.digitalWrite(PWR_ESP,bOn ? LOW : HIGH);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
@@ -89,17 +93,17 @@ void SettingsClass::begin()
 
 
   // настраиваем канал подсветки дисплея
-  MCP.pinMode(4,OUTPUT);
+  MCP.pinMode(LCD_led,OUTPUT);
 
   // включаем подсветку дисплея
   displayBacklight(true);
 
 
   // настраиваем "подхват питания"
-  MCP.pinMode(5,OUTPUT);
+  MCP.pinMode(PWR_On_Out,OUTPUT);
 
   // настраиваем управление питанием ESP
-  MCP.pinMode(6,OUTPUT);
+  MCP.pinMode(PWR_ESP,OUTPUT);
 
   // выключаем питание ESP
   espPower(false);
