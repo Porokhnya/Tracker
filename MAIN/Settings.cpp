@@ -25,10 +25,12 @@ void SettingsClass::test_key()
 			  while (digitalRead(Key_line_In11) == LOW) {}
               break;
           }
-          
-      Settings.MCP.digitalWrite(i, HIGH);
+     // Settings.MCP.digitalWrite(i, HIGH);
   }
-  
+  Settings.MCP.digitalWrite(Key_line_Out0, HIGH);
+  Settings.MCP.digitalWrite(Key_line_Out1, HIGH);
+  Settings.MCP.digitalWrite(Key_line_Out2, HIGH);
+  Settings.MCP.digitalWrite(Key_line_Out3, HIGH);
   for (int i = 0; i < 4; i++)
   {
       Settings.MCP.digitalWrite(i, LOW);
@@ -45,7 +47,8 @@ void SettingsClass::test_key()
   Settings.MCP.digitalWrite(Key_line_Out1, LOW);
   Settings.MCP.digitalWrite(Key_line_Out2, LOW);
   Settings.MCP.digitalWrite(Key_line_Out3, LOW);
-  SerialUSB.println(pressedKey);
+  Settings.newPressedKey = true;                 // Нажата новая кнопка
+  //SerialUSB.println(pressedKey);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass::SettingsClass()
