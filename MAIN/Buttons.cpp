@@ -40,7 +40,7 @@ void ButtonsList::update()
 				// включаем подсветку
 				Settings.displayBacklight(true);
 			}
-
+			// Здесь ,возможно, нужно настроить обработку остальных кнопок
 
 		}
 	}

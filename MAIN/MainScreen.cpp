@@ -50,13 +50,12 @@ void MainScreen::doUpdate(HalDC* hal)
 {
   if(!isActive())
     return;
-
-
-   // выводим код нажатой клавиши
-   String pk = F("KEY: "); pk += Settings.getPressedKey();
-   uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-   hal->print(pk.c_str(), 0, fontHeight*4 + 2*4);
-   hal->updateDisplay();
+   
+   // выводим код нажатой клавиши (! отлажено, вывод номера кнопки на экран уже не нужен).
+   //String pk = F("KEY: "); pk += Settings.getPressedKey();
+   //uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+   //hal->print(pk.c_str(), 0, fontHeight*4 + 2*4);
+   //hal->updateDisplay();
     
 	// обновление экрана
   static uint32_t tempUpdateTimer = 0;
@@ -87,9 +86,10 @@ void MainScreen::doUpdate(HalDC* hal)
       
       drawTemperature(hal);
       drawADC(hal);
-          
+	  drawTime(hal);
       hal->updateDisplay();
     }
+	
   } // if(millis() - ....
 }
 
@@ -154,8 +154,35 @@ void MainScreen::drawTemperature(HalDC* hal)
     tempString += '%';
   }
   hal->print(tempString.c_str(), 0, fontHeight + 2);
-  
+
 }
+
+void MainScreen::drawTime(HalDC* hal)
+{
+	DS3231Time tm = RealtimeClock.getTime();
+	if (oldsecond != tm.second)
+	{
+		oldsecond = tm.second;
+	
+		hal->setFont(SCREEN_SMALL_FONT);
+		hal->setColor(SCREEN_TEXT_COLOR);
+
+		// получаем компоненты даты в виде строк
+		String strDate = RealtimeClock.getDateStr(tm);
+		String strTime = RealtimeClock.getTimeStr(tm);
+		// печатаем их
+		uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+		hal->print(strDate.c_str(), 0, fontHeight * 3 + 2 * 4);
+		hal->print(strTime.c_str(), 0, fontHeight * 4 + 2*4);
+	
+		//SerialUSB.print(strDate);
+		//SerialUSB.print(" : ");
+		//SerialUSB.println(strTime);
+	}
+}
+
+
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doDraw(HalDC* hal)
 {
@@ -163,11 +190,12 @@ void MainScreen::doDraw(HalDC* hal)
   hal->clearScreen();
   
   //temp = Settings.getDS18B20Temperature();  
-  drawTemperature(hal);
+   drawTemperature(hal);
 
    adcValue = Settings.getAnalogSensorValue();
    drawADC(hal);
-   
+   drawTime(hal);
+
    hal->updateDisplay();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
