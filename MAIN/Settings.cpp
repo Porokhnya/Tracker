@@ -45,8 +45,7 @@ void SettingsClass::test_key()
   Settings.MCP.digitalWrite(Key_line_Out1, LOW);
   Settings.MCP.digitalWrite(Key_line_Out2, LOW);
   Settings.MCP.digitalWrite(Key_line_Out3, LOW);
-  DBGLN(pressedKey);
-  //SerialUSB.println(pressedKey);
+  SerialUSB.println(pressedKey);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass::SettingsClass()

@@ -103,7 +103,7 @@ void MainScreen::drawADC(HalDC* hal)
 
   uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
   
-  String adcString = F("АЦП: ");
+  String adcString = F("Темп2: ");
   adcString += adcValue;
   hal->print(adcString.c_str(),0,fontHeight*2 + 2*2);
   
@@ -116,7 +116,7 @@ void MainScreen::drawTemperature(HalDC* hal)
   hal->setColor(SCREEN_TEXT_COLOR);
 
   // рисуем температуру
-  String tempString = F("Темп: ");
+  String tempString = F("Темп1: ");
   uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
   
   
