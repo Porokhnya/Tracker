@@ -40,7 +40,7 @@ class SettingsClass
 
     void displayBacklight(bool bOn);
     void espPower(bool bOn);
-
+	bool newPressedKey;         // Признак нажатия новой кнопки
     int getPressedKey() {return pressedKey; }
     void resetPressedKey(){pressedKey = 0;}
     
