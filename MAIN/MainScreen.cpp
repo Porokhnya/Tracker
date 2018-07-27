@@ -59,11 +59,11 @@ void MainScreen::doUpdate(HalDC* hal)
     
 	// обновление экрана
   static uint32_t tempUpdateTimer = 0;
+  bool wantDrawTemp = false, wantDrawADC = false, wantDrawTime = false;
+    
   if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
     tempUpdateTimer = millis();
-    bool wantDrawTemp = false, wantDrawADC = false;
-
     
     Si7021Data thisData = Settings.readSensor();
     
@@ -79,18 +79,26 @@ void MainScreen::doUpdate(HalDC* hal)
       adcValue = thisADCVal;      
       wantDrawADC = true;
     }
-
-    if(wantDrawTemp || wantDrawADC)
-    {
-      hal->clearScreen();
-      
-      drawTemperature(hal);
-      drawADC(hal);
-	  drawTime(hal);
-      hal->updateDisplay();
-    }
 	
   } // if(millis() - ....
+
+  DS3231Time tm = RealtimeClock.getTime();
+  if (oldsecond != tm.second)
+  {
+    oldsecond = tm.second;
+    wantDrawTime = true;
+  }  
+
+  if(wantDrawTemp || wantDrawADC || wantDrawTime)
+  {
+    hal->clearScreen();
+    
+    drawTemperature(hal);
+    drawADC(hal);
+    drawTime(hal);
+    
+    hal->updateDisplay();
+  }  
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -156,13 +164,10 @@ void MainScreen::drawTemperature(HalDC* hal)
   hal->print(tempString.c_str(), 0, fontHeight + 2);
 
 }
-
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTime(HalDC* hal)
 {
 	DS3231Time tm = RealtimeClock.getTime();
-	if (oldsecond != tm.second)
-	{
-		oldsecond = tm.second;
 	
 		hal->setFont(SCREEN_SMALL_FONT);
 		hal->setColor(SCREEN_TEXT_COLOR);
@@ -178,11 +183,7 @@ void MainScreen::drawTime(HalDC* hal)
 		//SerialUSB.print(strDate);
 		//SerialUSB.print(" : ");
 		//SerialUSB.println(strTime);
-	}
 }
-
-
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doDraw(HalDC* hal)
 {

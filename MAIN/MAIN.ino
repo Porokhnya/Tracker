@@ -48,7 +48,7 @@ void setup()
   // настраиваем железные кнопки
   Buttons.begin();
 
-  Serial.println(F("INIT settings..."));
+  DBGLN(F("INIT settings..."));
   Settings.begin();
   DBGLN(F("Settings inited."));
   
@@ -84,10 +84,6 @@ void setup()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
-  Serial.println("Hello");
- // delay(2000);
-
-
   Settings.update();
   
   // обновляем кнопки

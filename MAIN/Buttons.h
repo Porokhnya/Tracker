@@ -12,9 +12,13 @@ class ButtonsList
 
 //    Button redButton;
 
+  void onKeyPressed(int key);
+
 private:
 
     bool inited;
+    int pressedKey;
+    bool wantProcessKey;
     
 };
 //--------------------------------------------------------------------------------------------------
