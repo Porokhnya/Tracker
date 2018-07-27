@@ -65,7 +65,11 @@ void setup()
   
   DBGLN(F("Add main screen...")); 
   Screen.addScreen(MainScreen::create());           // первый экран покажется по умолчанию
+  DBGLN(F("Main screen added.")); 
 
+  DBGLN(F("Add menu screen #1...")); 
+  Screen.addScreen(MenuScreen1::create());
+  DBGLN(F("Menu screen #1 added.")); 
   
   // переключаемся на первый экран
   Screen.switchToScreen("Main");

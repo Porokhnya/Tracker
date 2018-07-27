@@ -59,6 +59,12 @@ void AbstractHALScreen::setup(HalDC* hal)
   doSetup(hal); 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void AbstractHALScreen::notifyButtonPressed(int pressedButton)
+{
+  Screen.notifyAction(this);
+  onButtonPressed(&Screen, pressedButton);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void AbstractHALScreen::update(HalDC* hal)
 {
   if(isActive())
@@ -68,8 +74,9 @@ void AbstractHALScreen::update(HalDC* hal)
       
       if(pressedButton != -1)
       {
-        hal->notifyAction(this);
-        onButtonPressed(hal, pressedButton);
+        notifyButtonPressed(pressedButton);
+        //hal->notifyAction(this);
+        //onButtonPressed(hal, pressedButton);
       }
     #endif
 

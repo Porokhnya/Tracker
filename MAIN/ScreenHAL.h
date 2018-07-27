@@ -98,6 +98,8 @@ class AbstractHALScreen
     // вызывается, когда экран становится неактивным
     virtual void onDeactivate() {}
 
+    void notifyButtonPressed(int pressedButton);
+
   protected:
 
     

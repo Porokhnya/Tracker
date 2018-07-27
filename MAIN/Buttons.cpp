@@ -2,6 +2,7 @@
 #include "Buttons.h"
 #include "CONFIG.h"
 #include "Settings.h"
+#include "ScreenHAL.h"
 //--------------------------------------------------------------------------------------------------
 ButtonsList Buttons;
 //--------------------------------------------------------------------------------------------------
@@ -45,6 +46,13 @@ void ButtonsList::update()
         {
           // включаем подсветку
           Settings.displayBacklight(true);
+
+          AbstractHALScreen* screen = Screen.getActiveScreen();
+          if(screen)
+          {
+            screen->notifyButtonPressed(pressedKey);
+          }
+          
         }
         // Здесь ,возможно, нужно настроить обработку остальных кнопок
   
