@@ -6,6 +6,7 @@
 SettingsClass Settings;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int SettingsClass::pressedKey = 0;
+uint8_t KNOWN_LOGGING_INTERVALS[ LOGGING_INTERVALS_COUNT ] = { LOGGING_INTERVALS };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::test_key()
 {
@@ -47,7 +48,7 @@ void SettingsClass::test_key()
   Settings.MCP.digitalWrite(Key_line_Out1, LOW);
   Settings.MCP.digitalWrite(Key_line_Out2, LOW);
   Settings.MCP.digitalWrite(Key_line_Out3, LOW);
- // Settings.newPressedKey = true;                 // Нажата новая кнопка
+
   //SerialUSB.println(pressedKey);
   
   Buttons.onKeyPressed(pressedKey);
@@ -58,6 +59,32 @@ SettingsClass::SettingsClass()
 {
   eeprom = NULL;
   analogSensorValue = 0;
+  loggingInterval = LOGGING_INTERVAL_INDEX;
+  bLoggingEnabled = true;
+  bWantToLogFlag = false;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint8_t SettingsClass::getLoggingInterval()
+{  
+  if(loggingInterval >= LOGGING_INTERVALS_COUNT)
+  {
+    loggingInterval = 0;
+    setLoggingIntervalIndex(loggingInterval);
+  }
+
+  return KNOWN_LOGGING_INTERVALS[loggingInterval];
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setLoggingIntervalIndex(uint8_t val)
+{
+  loggingInterval = val;
+
+  eeprom->write(LOGGING_INTERVAL_ADDRESS, val);
+
+  uint8_t actualLoggingInterval = getLoggingInterval();
+  
+  //TODO: Тут перенастройка часов на новый интервал, в переменной actualLoggingInterval лежит интервал в минутах !!!!
+  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::displayBacklight(bool bOn)
@@ -70,9 +97,36 @@ void SettingsClass::espPower(bool bOn)
   MCP.digitalWrite(PWR_ESP,bOn ? LOW : HIGH);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::switchLogging(bool bOn)
+{
+    bLoggingEnabled = bOn;
+    eeprom->write(LOGGING_ENABLED_ADDRESS, bLoggingEnabled ? 1 : 0);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
+ 
   eeprom = new AT24C64();
+
+  // читаем значение интервала между логгированием на SD
+  loggingInterval = eeprom->read(LOGGING_INTERVAL_ADDRESS);
+  if(loggingInterval == 0xFF)
+  {
+    loggingInterval = LOGGING_INTERVAL_INDEX;
+    eeprom->write(LOGGING_INTERVAL_ADDRESS, loggingInterval);
+  }
+
+
+  // смотрим - активно ли логгирование?
+  uint8_t lEn = eeprom->read(LOGGING_ENABLED_ADDRESS);
+  if(lEn == 0xFF)
+  {
+    lEn = 1;
+    eeprom->write(LOGGING_ENABLED_ADDRESS, lEn);
+  }
+        
+  bLoggingEnabled = lEn == 1;
+  
   analogSensorValue = 0;
   sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
   memset(&si7021Data,0,sizeof(si7021Data));
@@ -92,6 +146,7 @@ void SettingsClass::begin()
   MCP.digitalWrite(Key_line_Out1, LOW);
   MCP.digitalWrite(Key_line_Out2, LOW);
   MCP.digitalWrite(Key_line_Out3, LOW);
+  
   //----------------------------- Подключить прерывание от кнопок ----------------------
   attachInterrupt(digitalPinToInterrupt(Key_line_In11), test_key, FALLING);
   attachInterrupt(digitalPinToInterrupt(Key_line_In12), test_key, FALLING);
@@ -119,11 +174,8 @@ void SettingsClass::begin()
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SettingsClass::update()
-{  
-  if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
-  {
-    sensorsUpdateTimer = millis();
+void SettingsClass::updateDataFromSensors()
+{
     analogSensorValue = analogRead(ANALOG_SENSOR_PIN);
 
     float t = si7021.readTemperature()*100.0;
@@ -134,8 +186,31 @@ void SettingsClass::update()
     t = si7021.readHumidity()*100.0;
     iT = t;
     si7021Data.humidity = iT/100;
-    si7021Data.humidityFract = iT%100;
+    si7021Data.humidityFract = iT%100;  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::update()
+{  
+  if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
+  {
+    sensorsUpdateTimer = millis();
+    updateDataFromSensors();
   }
+
+  if(bWantToLogFlag)
+  {
+    bWantToLogFlag = false;
+
+    if(bLoggingEnabled)
+    {
+        updateDataFromSensors();
+        
+      //TODO: ТУТ ЛОГГИРОВАНИЕ ИНФОРМАЦИИ С ДАТЧИКОВ НА SD !!!
+      
+    } // if(bLoggingEnabled)
+    
+  } // if(bWantToLogFlag)
+  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 /*

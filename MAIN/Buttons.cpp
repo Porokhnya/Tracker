@@ -36,7 +36,7 @@ void ButtonsList::update()
 
       if (pressedKey > 0)
       {
-        if (pressedKey == 7)
+        if (pressedKey == BUTTON_7)
         {
           // выключаем подсветку
           Settings.displayBacklight(false);
@@ -59,31 +59,7 @@ void ButtonsList::update()
       }      
    } // if(wantProcessKey)
 
-/*  
-	int pressedKey;
-	if (Settings.newPressedKey)           // Если нажата новая кнопка
-	{
-		pressedKey = Settings.getPressedKey();
-		Settings.newPressedKey = false;     // Кнопка считана, сбросить признак нажатия новой кнопки
-	
-		if (pressedKey > 0)
-		{
-			if (pressedKey == 7)
-			{
-				// выключаем подсветку
-				Settings.displayBacklight(false);
 
-			}
-			else
-			{
-				// включаем подсветку
-				Settings.displayBacklight(true);
-			}
-			// Здесь ,возможно, нужно настроить обработку остальных кнопок
-
-		}
-	}
- */
   /*
     if(redButton.isClicked())
     {

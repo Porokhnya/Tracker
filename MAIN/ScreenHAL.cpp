@@ -478,6 +478,28 @@ uint16_t HalDC::getFontHeight(FONT_TYPE* font)
   #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t HalDC::getScreenWidth()
+{
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    return halDCDescriptor->getDisplayXSize(); 
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110    
+    return 84;     
+  #else
+    #error "Unsupported display!"
+  #endif     
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t HalDC::getScreenHeight()
+{
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    return halDCDescriptor->getDisplayYSize(); 
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110    
+    return 48;     
+  #else
+    #error "Unsupported display!"
+  #endif     
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------  
 int HalDC::print(const char* st,int x, int y, int deg, bool computeStringLengthOnly)
 {
   #if DISPLAY_USED == DISPLAY_ILI9341

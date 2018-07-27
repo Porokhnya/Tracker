@@ -64,8 +64,7 @@ class HalDC;
   
   extern FONT_TYPE BigFont[];               // какой шрифт используем
   extern FONT_TYPE SmallFont[];             // какой шрифт используем
-  extern FONT_TYPE Various_Symbols_16x32[];    // какой шрифт используем
-  extern FONT_TYPE Various_Symbols_32x32[];    // какой шрифт используем
+  extern FONT_TYPE MediumNumbers[];    // какой шрифт используем
 
   #define SCREEN_SMALL_FONT SmallFont       // маленький шрифт
   #define SCREEN_TEXT_COLOR 0
@@ -165,6 +164,9 @@ public:
   void  fillRoundRect(int x1, int y1, int x2, int y2);
   uint16_t getFontWidth(FONT_TYPE* font);
   uint16_t getFontHeight(FONT_TYPE* font);
+
+  uint16_t getScreenWidth();
+  uint16_t getScreenHeight();
 
   void clearScreen();
 

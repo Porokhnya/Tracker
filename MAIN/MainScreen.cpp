@@ -218,18 +218,21 @@ void MainScreen::onButtonPressed(HalDC* hal, int pressedButton)
 	  // Для Nokia кнопки идут с 1
   switch(pressedButton)
   {
-      case 1: // по нажатию кнопки 1 переключаемся на первый экран настроек
+      case BUTTON_1: // по нажатию кнопки 1 переключаемся на первый экран настроек
         hal->switchToScreen("MenuScreen1");
       break;
-	  case 2: // по нажатию кнопки 2 переключаемся на первый экран настроек
-		hal->switchToScreen("MenuScreen2");
-		break;
-	  case 3: // по нажатию кнопки 3 переключаемся на первый экран настроек
-		hal->switchToScreen("MenuScreen3");
-		break;
-	  case 4: // по нажатию кнопки 4 переключаемся на первый экран настроек
-	  hal->switchToScreen("MenuScreen4");
-		break;
+      
+  	  case BUTTON_2: // по нажатию кнопки 2 переключаемся на первый экран настроек
+  		  hal->switchToScreen("MenuScreen2");
+  		break;
+      
+  	  case BUTTON_3: // по нажатию кнопки 3 переключаемся на первый экран настроек
+  		  hal->switchToScreen("MenuScreen3");
+  		break;
+      
+  	  case BUTTON_4: // по нажатию кнопки 4 переключаемся на первый экран настроек
+  	    hal->switchToScreen("MenuScreen4");
+  		break;
 
   }
   
@@ -258,7 +261,10 @@ void MenuScreen1::onActivate()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen1::doSetup(HalDC* hal)
 {
-  // первоначальная настройка экрана
+  // первоначальная настройка экрана  
+  for(uint8_t i=0;i<LOGGING_INTERVALS_COUNT;i++)
+    intervalsRingBuffer.push_back(i);
+  
   
   #if DISPLAY_USED == DISPLAY_ILI9341
   
@@ -284,13 +290,64 @@ void MenuScreen1::doUpdate(HalDC* hal)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen1::doDraw(HalDC* hal)
 {
-
+  drawGUI(hal); 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen1::drawGUI(HalDC* hal)
+{
+  hal->clearScreen();
+  
   hal->setFont(SCREEN_SMALL_FONT);
   hal->setColor(SCREEN_TEXT_COLOR);
 
-  hal->print("Экран #1", 0, 0);    
+  uint8_t fontHeightSmall = hal->getFontHeight(SCREEN_SMALL_FONT);
+  uint8_t fontWidthSmall = hal->getFontWidth(SCREEN_SMALL_FONT);
+
+  int drawX = 0, drawY = 0;
+
+  uint16_t screenWidth = hal->getScreenWidth();
+  uint16_t screenHeight = hal->getScreenHeight();
+
+  hal->print("Интервал, мин:", drawX, drawY);
+
+  drawY += fontHeightSmall + 8;
+
+  hal->setFont(MediumNumbers);
+  uint8_t fontHeightBig = hal->getFontHeight(MediumNumbers);
+  uint8_t fontWidthBig = hal->getFontWidth(MediumNumbers);
+
+  // получаем текущий интервал
+  String strInterval = String(Settings.getLoggingInterval());
+
+  // вычисляем, с какой позиции выводить интервал, чтобы вывести его по центру экрана
+  drawX = (screenWidth - (strInterval.length()*fontWidthBig))/2;
+  hal->print(strInterval.c_str(), drawX, drawY);
+
+  drawY = screenHeight - fontHeightSmall;
+
+  // рисуем статус логгирования
+  hal->setFont(SCREEN_SMALL_FONT);
+
+  String logCaption;
+
+  if(Settings.isLoggingEnabled())
+  {
+    // логгирование активно
+    logCaption = "Лог активен";    
+  }
+  else
+  {
+    // логгирование неактивно
+    logCaption = "Лог неактивен";
+  }
+
+  int strLen = hal->print(logCaption.c_str(),0,0,0,true);
+  drawX = (screenWidth - strLen*fontWidthSmall)/2;
+
+  hal->print(logCaption.c_str(), drawX, drawY);
 
   hal->updateDisplay();
+  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
@@ -312,20 +369,45 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
   // Для Nokia кнопки идут с 1
   switch(pressedButton)
   {
-      case 1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
-        //hal->switchToScreen("Main");
+      case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
+      {
+        Link<uint8_t>* leaf = intervalsRingBuffer.head();
+        uint8_t idx = Settings.getLoggingIntervalIndex();
+        
+        while(leaf->data != idx)
+          leaf = leaf->next;
+
+        leaf = leaf->next;
+        
+        Settings.setLoggingIntervalIndex(leaf->data);
+        drawGUI(hal);
+      } 
       break;
-	  case 2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
-		  //hal->switchToScreen("Main");
-		  break;
-	  case 3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
+      
+	    case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
+      {
+        Link<uint8_t>* leaf = intervalsRingBuffer.tail();
+        uint8_t idx = Settings.getLoggingIntervalIndex();
+        
+        while(leaf->data != idx)
+          leaf = leaf->prev;
 
-		  // Здесь вводим процедуру старта записи на SD
-
-		  hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
+        leaf = leaf->prev;
+        
+        Settings.setLoggingIntervalIndex(leaf->data);
+        drawGUI(hal);      
+      }
 		  break;
-	  case 4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
-		  hal->switchToScreen("Main");
+      
+	    case BUTTON_3: // по нажатию кнопки 3 вкл/выкл режим логгирования
+      {
+        Settings.switchLogging(!Settings.isLoggingEnabled());
+        drawGUI(hal);
+      }
+		  break;
+      
+	    case BUTTON_4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
+		    hal->switchToScreen("Main");
 		  break;
   }
   
@@ -411,21 +493,24 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 	// Для Nokia кнопки идут с 1
 	switch (pressedButton)
 	{
-	case 1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
-			//hal->switchToScreen("Main");
-		break;
-	case 2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
-			//hal->switchToScreen("Main");
-		break;
-	case 3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
-
-			// Здесь вводим процедуру старта записи на SD
-
-		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
-		break;
-	case 4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
-		hal->switchToScreen("Main");
-		break;
+  	case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
+  			//hal->switchToScreen("Main");
+  	break;
+      
+  	case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
+  			//hal->switchToScreen("Main");
+  	break;
+      
+  	case BUTTON_3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
+  
+  			// Здесь вводим процедуру старта записи на SD
+  
+  		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
+  	break;
+    
+  	case BUTTON_4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
+  		hal->switchToScreen("Main");
+  	break;
 	}
 
 #else
@@ -511,21 +596,24 @@ void MenuScreen3::onButtonPressed(HalDC* hal, int pressedButton)
 	// Для Nokia кнопки идут с 1
 	switch (pressedButton)
 	{
-	case 1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
-			//hal->switchToScreen("Main");
-		break;
-	case 2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
-			//hal->switchToScreen("Main");
-		break;
-	case 3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
-
-			// Здесь вводим процедуру старта записи на SD
-
-		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
-		break;
-	case 4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
-		hal->switchToScreen("Main");
-		break;
+  	case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
+  			//hal->switchToScreen("Main");
+  	break;
+      
+  	case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
+  			//hal->switchToScreen("Main");
+  	break;
+    
+  	case BUTTON_3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
+  
+  			// Здесь вводим процедуру старта записи на SD
+  
+  		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
+  	break;
+    
+  	case BUTTON_4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
+  		hal->switchToScreen("Main");
+  	break;
 	}
 
 #else
@@ -612,21 +700,24 @@ void MenuScreen4::onButtonPressed(HalDC* hal, int pressedButton)
 	// Для Nokia кнопки идут с 1
 	switch (pressedButton)
 	{
-	case 1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
-			//hal->switchToScreen("Main");
-		break;
-	case 2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
-			//hal->switchToScreen("Main");
-		break;
-	case 3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
-
-			// Здесь вводим процедуру старта записи на SD
-
-		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
-		break;
-	case 4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
-		hal->switchToScreen("Main");
-		break;
+  	case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
+  			//hal->switchToScreen("Main");
+  	break;
+      
+  	case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
+  			//hal->switchToScreen("Main");
+  	break;
+    
+  	case BUTTON_3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
+  
+  			// Здесь вводим процедуру старта записи на SD
+  
+  		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
+  	break;
+    
+  	case BUTTON_4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
+  		hal->switchToScreen("Main");
+  	break;
 	}
 
 #else
