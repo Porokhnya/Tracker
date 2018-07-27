@@ -66,3 +66,81 @@ private:
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+class MenuScreen2 : public AbstractHALScreen
+{
+public:
+
+	static AbstractHALScreen* create()
+	{
+		return new MenuScreen2();
+	}
+
+	virtual void onActivate();
+	virtual void onDeactivate();
+
+
+protected:
+
+	virtual void doSetup(HalDC* hal);
+	virtual void doUpdate(HalDC* hal);
+	virtual void doDraw(HalDC* hal);
+	virtual void onButtonPressed(HalDC* hal, int pressedButton);
+
+private:
+	MenuScreen2();
+
+};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+class MenuScreen3 : public AbstractHALScreen
+{
+public:
+
+	static AbstractHALScreen* create()
+	{
+		return new MenuScreen3();
+	}
+
+	virtual void onActivate();
+	virtual void onDeactivate();
+
+
+protected:
+
+	virtual void doSetup(HalDC* hal);
+	virtual void doUpdate(HalDC* hal);
+	virtual void doDraw(HalDC* hal);
+	virtual void onButtonPressed(HalDC* hal, int pressedButton);
+
+private:
+	MenuScreen3();
+
+};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+class MenuScreen4 : public AbstractHALScreen
+{
+public:
+
+	static AbstractHALScreen* create()
+	{
+		return new MenuScreen4();
+	}
+
+	virtual void onActivate();
+	virtual void onDeactivate();
+
+
+protected:
+
+	virtual void doSetup(HalDC* hal);
+	virtual void doUpdate(HalDC* hal);
+	virtual void doDraw(HalDC* hal);
+	virtual void onButtonPressed(HalDC* hal, int pressedButton);
+
+private:
+	MenuScreen4();
+
+};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------

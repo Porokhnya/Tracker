@@ -40,8 +40,8 @@ void setup()
   //Assign pins 3 & 4 SERCOM functionality
   pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
-  delay(500);
- // while(!Serial);
+  delay(1000);
+  //while(!Serial);
 
  Wire.begin();
 
@@ -54,7 +54,7 @@ void setup()
   
   DBGLN(F("Init RTC..."));
   RealtimeClock.begin(RTC_WIRE_NUMBER);           // запускаем их на шине I2C 1 (SDA1, SCL1)
-  //RealtimeClock.setTime(0,30,0,5,27,7,2018);
+ // RealtimeClock.setTime(5,16,9,5,27,7,2018);
 
   DBGLN(F("INIT SD..."));
   SDInit::InitSD();
@@ -70,8 +70,20 @@ void setup()
   DBGLN(F("Add menu screen #1...")); 
   Screen.addScreen(MenuScreen1::create());
   DBGLN(F("Menu screen #1 added.")); 
-  
-  // переключаемся на первый экран
+
+  DBGLN(F("Add menu screen #2..."));
+  Screen.addScreen(MenuScreen2::create());
+  DBGLN(F("Menu screen #2 added."));
+
+   DBGLN(F("Add menu screen #3..."));
+  Screen.addScreen(MenuScreen3::create());
+  DBGLN(F("Menu screen #3 added."));
+
+   DBGLN(F("Add menu screen #4..."));
+  Screen.addScreen(MenuScreen4::create());
+  DBGLN(F("Menu screen #4 added."));
+
+    // переключаемся на первый экран
   Screen.switchToScreen("Main");
 
 
