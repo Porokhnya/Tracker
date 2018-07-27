@@ -42,6 +42,7 @@ class SettingsClass
     void espPower(bool bOn);
 
     int getPressedKey() {return pressedKey; }
+    void resetPressedKey(){pressedKey = 0;}
     
   private:
 

@@ -21,7 +21,7 @@ void ButtonsList::update()
 {
   if (!inited)
     return;
-
+/*
   int pressedKey = Settings.getPressedKey();
   if (pressedKey > 0)
   {
@@ -37,7 +37,7 @@ void ButtonsList::update()
       Settings.displayBacklight(true);
     }
   }
-
+*/
   /*
     if(redButton.isClicked())
     {

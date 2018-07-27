@@ -9,36 +9,32 @@ int SettingsClass::pressedKey = 0;
 void SettingsClass::test_key()
 {
   pressedKey = 0;
-  
   Settings.MCP.digitalWrite(Key_line_Out0, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out1, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out2, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out3, HIGH);
-  
+
   for (int i = 0; i < 4; i++)
   {
-      Settings.MCP.digitalWrite(i, LOW);
-      
-          if (digitalRead(Key_line_In11) == LOW)
-          {
-              pressedKey = 4 - i;
-              break;
-          }
-          
+    Settings.MCP.digitalWrite(i, LOW);
+      if (digitalRead(Key_line_In11) == LOW)
+      {
+        pressedKey = 4 - i;
+        break;
+      }
       Settings.MCP.digitalWrite(i, HIGH);
   }
-  
+
   for (int i = 0; i < 4; i++)
   {
-      Settings.MCP.digitalWrite(i, LOW);
-      
-          if (digitalRead(Key_line_In12) == LOW)
-          {
-              pressedKey = 7 - i;
-              break;
-          }
+    Settings.MCP.digitalWrite(i, LOW);
+      if (digitalRead(Key_line_In12) == LOW)
+      {
+        pressedKey = 7 - i;
+        break;
+      }
   }
-  
+
   Settings.MCP.digitalWrite(Key_line_Out0, LOW);
   Settings.MCP.digitalWrite(Key_line_Out1, LOW);
   Settings.MCP.digitalWrite(Key_line_Out2, LOW);
@@ -111,7 +107,7 @@ void SettingsClass::begin()
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::update()
-{
+{  
   if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
     sensorsUpdateTimer = millis();

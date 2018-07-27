@@ -21,8 +21,7 @@ void screenAction(AbstractHALScreen* screen)
    screenIdleTimer = millis();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#define LED 11
-#define Serial SERIAL_PORT_USBVIRTUAL     // Подключить USB порт
+#define Serial SerialUSB     // Подключить USB порт
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Uart Serial2(&sercom2, 3, 4, SERCOM_RX_PAD_1, UART_TX_PAD_0); // Подключить Serial2
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -42,10 +41,13 @@ void setup()
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
   
  // while(!Serial);
-  pinMode(LED, OUTPUT);
-  digitalWrite(LED, LOW);
 
-   DBGLN(F("INIT settings..."));
+ Wire.begin();
+
+  // настраиваем железные кнопки
+  Buttons.begin();
+
+  Serial.println(F("INIT settings..."));
   Settings.begin();
   DBGLN(F("Settings inited."));
   
@@ -67,8 +69,6 @@ void setup()
   // переключаемся на первый экран
   Screen.switchToScreen("Main");
 
-  // настраиваем железные кнопки
-  Buttons.begin();
 
   screenIdleTimer = millis();
   Screen.onAction(screenAction);
@@ -83,6 +83,9 @@ void setup()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void loop() 
 {
+  Serial.println("Hello");
+ // delay(2000);
+
 
   Settings.update();
   
@@ -107,8 +110,12 @@ void loop()
   } // else
 
 
+  /*
   // обрабатываем входящие команды
   CommandHandler.handleCommands();
+  */
+
+  //Settings.resetPressedKey();
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
