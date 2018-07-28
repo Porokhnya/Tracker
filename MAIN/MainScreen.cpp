@@ -135,7 +135,7 @@ void MainScreen::drawTemperature(HalDC* hal)
   else // есть температура
   {   
     tempString += lastSensorData.temperature;
-    tempString += ".";
+    tempString += DECIMAL_SEPARATOR;
 
     if(lastSensorData.temperatureFract < 10)
       tempString += '0';
@@ -153,7 +153,7 @@ void MainScreen::drawTemperature(HalDC* hal)
   else // есть влажность
   {   
     tempString += lastSensorData.humidity;
-    tempString += ".";
+    tempString += DECIMAL_SEPARATOR;
 
     if(lastSensorData.humidityFract < 10)
       tempString += '0';

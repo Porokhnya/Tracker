@@ -45,6 +45,11 @@ void setup()
 
  Wire.begin();
 
+  DBGLN(F("Init RTC..."));
+  RealtimeClock.begin(RTC_WIRE_NUMBER);           // запускаем их на шине I2C 1 (SDA1, SCL1)
+  // Отключить вывод импульсов 32 кгц на выходе
+  RealtimeClock.enable32kHz(false);
+
   // настраиваем железные кнопки
   Buttons.begin();
 
@@ -52,8 +57,7 @@ void setup()
   Settings.begin();
   DBGLN(F("Settings inited."));
   
-  DBGLN(F("Init RTC..."));
-  RealtimeClock.begin(RTC_WIRE_NUMBER);           // запускаем их на шине I2C 1 (SDA1, SCL1)
+  
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);
 
   DBGLN(F("INIT SD..."));

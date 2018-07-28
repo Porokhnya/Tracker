@@ -66,6 +66,16 @@ class SettingsClass
     
   private:
 
+      void setupDS3231Alarm();
+      static void alarmFunction();
+      bool bWantCheckAlarm;
+      void checkIsAlarm();
+      uint16_t alarmTimer;
+
+
+      void logDataToSD();
+
+
      void updateDataFromSensors();
 
      uint8_t loggingInterval;

@@ -2,6 +2,8 @@
 #include "Settings.h"
 #include "CONFIG.h"
 #include "Buttons.h"
+#include "DS3231.h"
+#include "Logger.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass Settings;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -62,6 +64,8 @@ SettingsClass::SettingsClass()
   loggingInterval = LOGGING_INTERVAL_INDEX;
   bLoggingEnabled = true;
   bWantToLogFlag = false;
+  bWantCheckAlarm = false;
+  alarmTimer = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint8_t SettingsClass::getLoggingInterval()
@@ -81,10 +85,7 @@ void SettingsClass::setLoggingIntervalIndex(uint8_t val)
 
   eeprom->write(LOGGING_INTERVAL_ADDRESS, val);
 
-  uint8_t actualLoggingInterval = getLoggingInterval();
-  
-  //TODO: Тут перенастройка часов на новый интервал, в переменной actualLoggingInterval лежит интервал в минутах !!!!
-  
+  setupDS3231Alarm();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::displayBacklight(bool bOn)
@@ -101,6 +102,32 @@ void SettingsClass::switchLogging(bool bOn)
 {
     bLoggingEnabled = bOn;
     eeprom->write(LOGGING_ENABLED_ADDRESS, bLoggingEnabled ? 1 : 0);
+
+    setupDS3231Alarm();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setupDS3231Alarm()
+{
+  // выключаем все будильники
+  RealtimeClock.armAlarm1(false);
+  RealtimeClock.armAlarm2(false);
+  RealtimeClock.clearAlarm1();
+  RealtimeClock.clearAlarm2();
+
+  // обнуляем счётчик минут
+  alarmTimer = 0;
+  
+  if(!bLoggingEnabled) // логгирование выключено, ничего делать не надо
+    return;
+
+  // настраиваем будильник на часах на каждую минуту
+  RealtimeClock.setAlarm2(0, 0, 0, DS3231_EVERY_MINUTE);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::alarmFunction()
+{
+  // просто выставляем флаг, что будильник сработал
+  Settings.bWantCheckAlarm = true;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
@@ -126,6 +153,11 @@ void SettingsClass::begin()
   }
         
   bLoggingEnabled = lEn == 1;
+
+  attachInterrupt(RTC_ALARM_PIN, alarmFunction, FALLING); // прерывание вызывается только при смене значения на порту с LOW на HIGH
+
+  // настраиваем будильник часов
+  setupDS3231Alarm();
   
   analogSensorValue = 0;
   sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
@@ -189,6 +221,70 @@ void SettingsClass::updateDataFromSensors()
     si7021Data.humidityFract = iT%100;  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::checkIsAlarm()
+{
+  // сперва очищаем будильник по-любому
+  RealtimeClock.clearAlarm2();
+
+  // теперь проверяем - не пришло ли время логгировать?
+  alarmTimer++;
+
+  uint16_t logInterval = getLoggingInterval();
+
+  if(alarmTimer >= logInterval)
+  {
+    // пришло время собирать информацию и писать на SD !!!
+    alarmTimer = 0;
+
+    // выставили флаг - и внутри update всё сделается
+    bWantToLogFlag = true;
+  }
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::logDataToSD()
+{
+  //ТУТ ЛОГГИРОВАНИЕ ИНФОРМАЦИИ С ДАТЧИКОВ НА SD
+  String dataLine;
+
+  // в первом столбце - дата/время логгирования
+  DS3231Time tm = RealtimeClock.getTime();
+  String dateStr = RealtimeClock.getDateStr(tm);
+  dateStr += ' ';
+  dateStr  += RealtimeClock.getTimeStr(tm);
+
+  dataLine = Logger.formatCSV(dateStr);
+  dataLine += COMMA_DELIMITER;
+
+  // во втором столбце - показания аналогового датчика
+  dataLine += Logger.formatCSV(String(analogSensorValue));
+  dataLine += COMMA_DELIMITER;
+
+  // в третьем столбце - температура с Si7021
+  String sTemp = String(si7021Data.temperature);
+  sTemp += DECIMAL_SEPARATOR;
+  if(si7021Data.temperatureFract < 10)
+    sTemp += '0';
+  sTemp += si7021Data.temperatureFract;
+  dataLine += Logger.formatCSV(sTemp);
+  dataLine += COMMA_DELIMITER;  
+
+  // в четвертом столбце - влажность с Si7021
+  sTemp = String(si7021Data.humidity);
+  sTemp += DECIMAL_SEPARATOR;
+  if(si7021Data.humidityFract < 10)
+    sTemp += '0';
+  sTemp += si7021Data.humidityFract;
+  dataLine += Logger.formatCSV(sTemp);
+  dataLine += COMMA_DELIMITER;   
+
+  //TODO: ОСТАЛЬНЫЕ ДАННЫЕ ДЛЯ ЛОГА - ЗДЕСЬ !!!
+
+
+  dataLine += NEWLINE;
+  Logger.write((uint8_t*)dataLine.c_str(),dataLine.length());
+    
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::update()
 {  
   if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
@@ -197,15 +293,20 @@ void SettingsClass::update()
     updateDataFromSensors();
   }
 
+  if(bWantCheckAlarm)
+  {
+    bWantCheckAlarm = false;
+    checkIsAlarm();
+  }
+
   if(bWantToLogFlag)
   {
     bWantToLogFlag = false;
 
     if(bLoggingEnabled)
     {
-        updateDataFromSensors();
-        
-      //TODO: ТУТ ЛОГГИРОВАНИЕ ИНФОРМАЦИИ С ДАТЧИКОВ НА SD !!!
+        updateDataFromSensors();    
+        logDataToSD();
       
     } // if(bLoggingEnabled)
     

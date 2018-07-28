@@ -3,19 +3,25 @@
 #include <Arduino.h>
 #include "FileUtils.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#define COMMA_DELIMITER "," // разделитель полей в CSV
+#define NEWLINE F("\r\n") // новая строка
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class LoggerClass
 {
   public:
 
     LoggerClass();
 
-    void write(uint8_t* data,size_t dataLength);
+    void write(uint8_t* data,size_t dataLength);    
+    String formatCSV(const String& input);
 
   private:
 
     SdFile workFile;
     bool openWorkFile();
     void closeWorkFile();
+
+    String _COMMA, _NEWLINE;
 
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
