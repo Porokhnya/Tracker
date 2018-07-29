@@ -65,6 +65,7 @@ class HalDC;
   extern FONT_TYPE BigFont[];               // какой шрифт используем
   extern FONT_TYPE SmallFont[];             // какой шрифт используем
   extern FONT_TYPE MediumNumbers[];    // какой шрифт используем
+  extern FONT_TYPE TinyFont[];
 
   #define SCREEN_SMALL_FONT SmallFont       // маленький шрифт
   #define SCREEN_TEXT_COLOR 0

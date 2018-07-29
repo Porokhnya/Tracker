@@ -63,7 +63,7 @@ bool LoggerClass::openWorkFile()
   logFileName += '0';
  logFileName += tm.dayOfMonth;
 
-  logFileName += F(".LOG");
+  logFileName += F(".CSV");
 
   //DBG(F("WRITE INFO TO: "));
   //DBGLN(logFileName);

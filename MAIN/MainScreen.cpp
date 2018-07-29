@@ -30,6 +30,7 @@ void MainScreen::onActivate()
 void MainScreen::doSetup(HalDC* hal)
 {
   // первоначальная настройка экрана
+  lastLogActiveFlag = Settings.isLoggingEnabled();
   
   #if DISPLAY_USED == DISPLAY_ILI9341
   
@@ -50,13 +51,7 @@ void MainScreen::doUpdate(HalDC* hal)
 {
   if(!isActive())
     return;
-   
-   // выводим код нажатой клавиши (! отлажено, вывод номера кнопки на экран уже не нужен).
-   //String pk = F("KEY: "); pk += Settings.getPressedKey();
-   //uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-   //hal->print(pk.c_str(), 0, fontHeight*4 + 2*4);
-   //hal->updateDisplay();
-    
+      
 	// обновление экрана
   static uint32_t tempUpdateTimer = 0;
   bool wantDrawTemp = false, wantDrawADC = false, wantDrawTime = false;
@@ -87,15 +82,24 @@ void MainScreen::doUpdate(HalDC* hal)
   {
     oldsecond = tm.second;
     wantDrawTime = true;
-  }  
+  }
 
-  if(wantDrawTemp || wantDrawADC || wantDrawTime)
+  bool curLogActive = Settings.isLoggingEnabled();
+  bool wantDrawLogState = false;
+  if(curLogActive != lastLogActiveFlag)
+  {
+    lastLogActiveFlag = curLogActive;
+    wantDrawLogState = true;
+  }
+
+  if(wantDrawTemp || wantDrawADC || wantDrawTime || wantDrawLogState)
   {
     hal->clearScreen();
     
     drawTemperature(hal);
     drawADC(hal);
     drawTime(hal);
+    drawLogState(hal);
     
     hal->updateDisplay();
   }  
@@ -105,7 +109,7 @@ void MainScreen::doUpdate(HalDC* hal)
 void MainScreen::drawADC(HalDC* hal)
 {  
   // отрисовка показаний ADC
-  
+  /*
   hal->setFont(SCREEN_SMALL_FONT);
   hal->setColor(SCREEN_TEXT_COLOR);
 
@@ -114,12 +118,113 @@ void MainScreen::drawADC(HalDC* hal)
   String adcString = F("Темп2: ");
   adcString += adcValue;
   hal->print(adcString.c_str(),0,fontHeight*2 + 2*2);
-  
+  */
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MainScreen::drawLogState(HalDC* hal)
+{
+  String logCaption = "0";
+  if(lastLogActiveFlag)
+  {
+    logCaption = Settings.getLoggingInterval();
+  }
+
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->setColor(SCREEN_TEXT_COLOR);
+
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  uint8_t fontWidth = hal->getFontHeight(SCREEN_SMALL_FONT);
+
+  uint16_t screenWidth = hal->getScreenWidth();
+  uint16_t screenHeight = hal->getScreenHeight();
+
+  uint16_t captionWidth = fontWidth*logCaption.length();
+  uint16_t drawX = screenWidth - captionWidth - 2;
+  uint16_t drawY = screenHeight - fontHeight - 2;
+
+
+  hal->print(logCaption.c_str(),drawX, drawY);
+
+  int add = 2;
+  if(logCaption.length() < 2)
+    add = 0;
+    
+  hal->drawRoundRect(drawX - 2, drawY - 2, drawX + captionWidth - add, drawY + fontHeight);
+
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTemperature(HalDC* hal)
-{  
-  // отрисовка температуры
+{ 
+  // отрисовка температуры/влажности
+  String displayString;
+
+  uint16_t screenWidth = hal->getScreenWidth();
+  uint16_t screenHeight = hal->getScreenHeight();   
+
+  hal->setFont(MediumNumbers);
+  hal->setColor(SCREEN_TEXT_COLOR); 
+
+  uint8_t fontHeight = hal->getFontHeight(MediumNumbers);
+  uint8_t fontWidth = hal->getFontWidth(MediumNumbers);
+
+  if(lastSensorData.temperature == NO_TEMPERATURE_DATA) // нет температуры
+  {
+    displayString = "";
+  }
+  else // есть температура
+  {   
+    displayString += lastSensorData.temperature;
+    displayString += DECIMAL_SEPARATOR;
+
+    if(lastSensorData.temperatureFract < 10)
+      displayString += '0';
+
+    displayString += lastSensorData.temperatureFract;
+    displayString += ';'; // градус
+  }
+
+
+  uint16_t stringWidth = displayString.length()*fontWidth;
+
+  uint16_t drawX = (screenWidth - stringWidth)/2;
+  uint16_t drawY = 0;
+
+  hal->print(displayString.c_str(), drawX, drawY);
+
+
+
+  String percents;
+  bool hasHumidity = false;
+  if(lastSensorData.humidity == NO_TEMPERATURE_DATA) // нет влажности
+  {
+    displayString = "";
+  }
+  else // есть влажность
+  {   
+    hasHumidity = true;
+    displayString = lastSensorData.humidity;
+    displayString += DECIMAL_SEPARATOR;
+
+    if(lastSensorData.humidityFract < 10)
+      displayString += '0';
+
+    displayString += lastSensorData.humidityFract;
+    percents = '%';
+  }
+
+  drawY += fontHeight;
+  stringWidth = displayString.length()*fontWidth;
+  drawX = (screenWidth - stringWidth - ( hasHumidity ? fontWidth : 0 ))/2;
+  hal->print(displayString.c_str(), drawX, drawY);
+
+  drawX += stringWidth;
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->print(percents.c_str(), drawX, drawY);
+
+  
+   
+/*  
+  // отрисовка температуры 
   hal->setFont(SCREEN_SMALL_FONT);
   hal->setColor(SCREEN_TEXT_COLOR);
 
@@ -162,7 +267,7 @@ void MainScreen::drawTemperature(HalDC* hal)
     tempString += '%';
   }
   hal->print(tempString.c_str(), 0, fontHeight + 2);
-
+*/
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTime(HalDC* hal)
@@ -172,17 +277,43 @@ void MainScreen::drawTime(HalDC* hal)
 		hal->setFont(SCREEN_SMALL_FONT);
 		hal->setColor(SCREEN_TEXT_COLOR);
 
+    uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+    uint16_t screenWidth = hal->getScreenWidth();
+    uint16_t screenHeight = hal->getScreenHeight();  
+
 		// получаем компоненты даты в виде строк
-		String strDate = RealtimeClock.getDateStr(tm);
-		String strTime = RealtimeClock.getTimeStr(tm);
+		//String strDate = RealtimeClock.getDateStr(tm);
+		//String strTime = RealtimeClock.getTimeStr(tm);
+
+    String strDate;
+
+/*
+    if(tm.dayOfMonth < 10)
+      strDate += '0';
+    strDate += tm.dayOfMonth;
+    strDate += '.';
+  
+   if(tm.month < 10)
+      strDate += '0';
+    strDate += tm.month;
+    strDate += ' ';  
+*/  
+    if(tm.hour < 10)
+      strDate += '0';
+    strDate += tm.hour;
+    strDate += ':';   
+  
+    if(tm.minute < 10)
+      strDate += '0';
+    strDate += tm.minute;
+      
 		// печатаем их
-		uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-		hal->print(strDate.c_str(), 0, fontHeight * 3 + 2 * 4);
-		hal->print(strTime.c_str(), 0, fontHeight * 4 + 2*4);
+    int drawX = 0;
+    int drawY = screenHeight - fontHeight;
+    
+		hal->print(strDate.c_str(), drawX, drawY);
+		//hal->print(strTime.c_str(), 0, fontHeight * 4 + 2*4);
 	
-		//SerialUSB.print(strDate);
-		//SerialUSB.print(" : ");
-		//SerialUSB.println(strTime);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::doDraw(HalDC* hal)
@@ -196,6 +327,7 @@ void MainScreen::doDraw(HalDC* hal)
    adcValue = Settings.getAnalogSensorValue();
    drawADC(hal);
    drawTime(hal);
+   drawLogState(hal);
 
    hal->updateDisplay();
 }

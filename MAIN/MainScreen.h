@@ -33,8 +33,12 @@ private:
 
     uint16_t adcValue;
     void drawADC(HalDC* hal);
-	int oldsecond;
-	void drawTime(HalDC* hal);
+    
+	  int oldsecond;
+	  void drawTime(HalDC* hal);
+
+    bool lastLogActiveFlag;
+    void drawLogState(HalDC* hal);
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
