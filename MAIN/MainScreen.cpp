@@ -549,12 +549,13 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // MenuScreen2
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 MenuScreen2::MenuScreen2() : AbstractHALScreen("MenuScreen2")
 {
+  ignoreKeys = false;
+  exportActive = false;
+  drawMode = dmStartScreen;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen2::onDeactivate()
@@ -588,27 +589,163 @@ void MenuScreen2::doSetup(HalDC* hal)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool MenuScreen2::isExportDone()
+{
+    return (millis() - dummyTimerNeedToRemoveLater) > 5000;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen2::doUpdate(HalDC* hal)
 {
 	if (!isActive())
 		return;
-}
 
+  if(exportActive) // активен экспорт, надо проверить на его окончание
+  {
+    if(isExportDone())
+    {
+       exportActive = false;
+       drawMode = dmExportDone;
+       drawGUI(hal);
+
+      ignoreKeys = false;
+    }
+    
+    return;    
+  } // if(exportActive)
+
+   
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen2::drawStartScreen(HalDC* hal)
+{
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+
+  int drawX = 0, drawY = 0;
+
+  hal->print("Экспорт:", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 1 - Serial", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 2 - WiFi", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 3 - Принтер", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 4 - Выход", drawX, drawY);
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen2::drawExportToSerial(HalDC* hal)
+{
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  
+  int drawX = 0, drawY = 0;
+
+  hal->print("Идёт экспорт", drawX, drawY);
+  
+  drawY += fontHeight + 2;
+  hal->print("в COM-порт.", drawX, drawY);
+
+  drawY += fontHeight*2 + 2*2;
+  hal->print("Ждите...", drawX, drawY);
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen2::drawExportToWiFi(HalDC* hal)
+{
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  
+  int drawX = 0, drawY = 0;
+
+  hal->print("Идёт экспорт", drawX, drawY);
+  
+  drawY += fontHeight + 2;
+  hal->print("по WiFi.", drawX, drawY);
+
+  drawY += fontHeight*2 + 2*2;
+  hal->print("Ждите...", drawX, drawY);
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen2::drawExportToPrinter(HalDC* hal)
+{
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  
+  int drawX = 0, drawY = 0;
+
+  hal->print("Идёт экспорт", drawX, drawY);
+  
+  drawY += fontHeight + 2;
+  hal->print("на принтер.", drawX, drawY);
+
+  drawY += fontHeight*2 + 2*2;
+  hal->print("Ждите...", drawX, drawY);
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen2::drawExportDone(HalDC* hal)
+{
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  
+  int drawX = 0, drawY = 0;
+
+  hal->print("Завершено.", drawX, drawY);
+  
+  drawY += fontHeight + 2;
+  hal->print("Нажмите любую", drawX, drawY);
+
+  drawY += fontHeight + 2;
+  hal->print("кнопку.", drawX, drawY);
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MenuScreen2::drawGUI(HalDC* hal)
+{
+  hal->clearScreen();
+  
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->setColor(SCREEN_TEXT_COLOR);
+
+  switch(drawMode)
+  {
+    case dmStartScreen:
+      drawStartScreen(hal);
+    break;
+
+    case dmExportToSerial:
+      drawExportToSerial(hal);
+    break;
+
+    case dmExportToWiFi:
+      drawExportToWiFi(hal);
+    break;
+
+    case dmExportToPrinter:
+      drawExportToPrinter(hal);
+    break;
+
+    case dmExportDone:
+      drawExportDone(hal);
+    break;
+  }
+
+  hal->updateDisplay();
+  
+}
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen2::doDraw(HalDC* hal)
 {
-
-	hal->setFont(SCREEN_SMALL_FONT);
-	hal->setColor(SCREEN_TEXT_COLOR);
-
-	hal->print("Экран #2", 0, 0);
-
-	hal->updateDisplay();
+  drawGUI(hal);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 {
 	// обрабатываем нажатия на кнопки
+  if(ignoreKeys)
+  return;
 
 #if DISPLAY_USED == DISPLAY_ILI9341
 
@@ -622,22 +759,44 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 
 #elif DISPLAY_USED == DISPLAY_NOKIA5110
 
+  if(dmExportDone == drawMode) // если рисуем экран окончания экспорта - любая кнопка выходит иэ этого экрана на стартовую позицию до экспорта
+  {
+    drawMode = dmStartScreen;
+    drawGUI(hal);
+    return;
+  }
+
 	// Для Nokia кнопки идут с 1
 	switch (pressedButton)
 	{
-  	case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
-  			//hal->switchToScreen("Main");
+  	case BUTTON_1: // экспорт в Serial
+	  {
+      ignoreKeys = true;
+      dummyTimerNeedToRemoveLater = millis();
+      drawMode = dmExportToSerial;
+      drawGUI(hal);
+      exportActive = true;
+	  }
+    break;
+      
+  	case BUTTON_2: // экспорт по WiFi
+    {
+      ignoreKeys = true;
+      dummyTimerNeedToRemoveLater = millis();
+      drawMode = dmExportToWiFi;
+      drawGUI(hal);
+      exportActive = true;
+    }
   	break;
       
-  	case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
-  			//hal->switchToScreen("Main");
-  	break;
-      
-  	case BUTTON_3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
-  
-  			// Здесь вводим процедуру старта записи на SD
-  
-  		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
+  	case BUTTON_3: // экспорт на принтер  
+    {
+      ignoreKeys = true;
+      dummyTimerNeedToRemoveLater = millis();
+      drawMode = dmExportToPrinter;
+      drawGUI(hal);
+      exportActive = true;      
+    }
   	break;
     
   	case BUTTON_4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
@@ -650,9 +809,6 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 #endif
 
 }
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // MenuScreen3
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

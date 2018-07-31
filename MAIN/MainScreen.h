@@ -72,7 +72,16 @@ private:
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+typedef enum
+{
+  dmStartScreen,
+  dmExportToSerial,
+  dmExportToWiFi,
+  dmExportToPrinter,
+  dmExportDone
+  
+} SettingScreenDrawMode;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class MenuScreen2 : public AbstractHALScreen
 {
 public:
@@ -95,6 +104,20 @@ protected:
 
 private:
 	MenuScreen2();
+
+  bool ignoreKeys, exportActive;
+  SettingScreenDrawMode drawMode;
+  uint32_t dummyTimerNeedToRemoveLater;
+
+  void drawGUI(HalDC* hal);
+  
+  void drawStartScreen(HalDC* hal);
+  void drawExportToSerial(HalDC* hal);
+  void drawExportToWiFi(HalDC* hal);
+  void drawExportToPrinter(HalDC* hal);
+  void drawExportDone(HalDC* hal);
+
+  bool isExportDone();
 
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
