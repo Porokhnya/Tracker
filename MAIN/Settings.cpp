@@ -88,6 +88,42 @@ void SettingsClass::setLoggingIntervalIndex(uint8_t val)
   setupDS3231Alarm();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setLoggerDayOfMonth(uint8_t lastDayOfMonth)
+{
+  eeprom->write(LOGGER_DOM_ADDRESS, lastDayOfMonth);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setLoggerLogFileNumber(uint8_t todayLogFileNumber)
+{
+  eeprom->write(LOGGER_FN_ADDRESS, todayLogFileNumber);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint8_t SettingsClass::getLoggerDayOfMonth()
+{
+  uint8_t val = eeprom->read(LOGGER_DOM_ADDRESS);
+
+  if(val == 0xFF)
+  {
+    val = 0;
+    setLoggerDayOfMonth(val);
+  }
+
+  return val;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint8_t SettingsClass::getLoggerLogFileNumber()
+{
+  uint8_t val = eeprom->read(LOGGER_FN_ADDRESS);
+
+  if(val == 0xFF)
+  {
+    val = 0;
+    setLoggerLogFileNumber(val);
+  }
+
+  return val;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
 void SettingsClass::displayBacklight(bool bOn)
 {
   MCP.digitalWrite(LCD_led, bOn ? LOW : HIGH);

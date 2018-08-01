@@ -151,6 +151,53 @@ void FileUtils::printFilesNames(const String& dirName, bool recursive, Stream* o
  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// FileEntry
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint32_t FileEntry::getTimestamp(const char* fileRootDir)
+{
+  uint32_t result = 0;
+
+  SdFile root, file;
+  root.open(fileRootDir,O_READ);
+  if(root.isOpen())
+  {
+    file.open(&root,dirIndex,O_READ);
+    if(file.isOpen())
+    {
+      dir_t d;
+      file.dirEntry(&d);
+      result = (d.creationDate << 16) | d.creationTime;      
+      file.close();
+    }
+    root.close();
+  }
+
+  return result;  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String FileEntry::getName(const char* fileRootDir)
+{
+  String result;
+
+  SdFile root, file;
+  root.open(fileRootDir,O_READ);
+  if(root.isOpen())
+  {
+    file.open(&root,dirIndex,O_READ);
+    if(file.isOpen())
+    {
+      char nameBuff[50] = {0};
+      file.getName(nameBuff,50);
+      result = nameBuff;
+      
+      file.close();
+    }
+    root.close();
+  }
+
+  return result;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // SDInit
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 bool SDInit::InitSD()

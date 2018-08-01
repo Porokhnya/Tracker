@@ -15,6 +15,10 @@ class LoggerClass
     void write(uint8_t* data,size_t dataLength);    
     String formatCSV(const String& input);
 
+    void newLogFile(); // создаёт новый файл за сегодня, прибавляя нумерацию
+
+    void begin();
+
   private:
 
     SdFile workFile;
@@ -22,6 +26,9 @@ class LoggerClass
     void closeWorkFile();
 
     String _COMMA, _NEWLINE;
+
+    uint8_t lastDayOfMonth;
+    uint8_t todayLogFileNumber;
 
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

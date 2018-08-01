@@ -2,6 +2,7 @@
 #include "Logger.h"
 #include "DS3231.h"
 #include "CONFIG.h"
+#include "Settings.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 LoggerClass Logger;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -9,6 +10,26 @@ LoggerClass::LoggerClass()
 {
   _COMMA = COMMA_DELIMITER;
   _NEWLINE = NEWLINE;
+  lastDayOfMonth = 0;
+  todayLogFileNumber = 0;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void LoggerClass::begin()
+{
+  // получаем сохранённые в EEPROM значения текущего имени файла на сегодня
+  lastDayOfMonth = Settings.getLoggerDayOfMonth();
+  todayLogFileNumber = Settings.getLoggerLogFileNumber();
+
+  DS3231Time tm = RealtimeClock.getTime();
+
+  if(tm.dayOfMonth != lastDayOfMonth) // начался новый день, сбрасываем номер файла за сегодня в 1
+  {
+    lastDayOfMonth = tm.dayOfMonth;
+    todayLogFileNumber = 1;
+    
+    Settings.setLoggerDayOfMonth(lastDayOfMonth);
+    Settings.setLoggerLogFileNumber(todayLogFileNumber);
+  }  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 String LoggerClass::formatCSV(const String& src)
@@ -37,6 +58,17 @@ String LoggerClass::formatCSV(const String& src)
   return input;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void LoggerClass::newLogFile()
+{
+  // создаём новый номер файла за сегодня
+  closeWorkFile();
+
+  todayLogFileNumber++;
+
+  Settings.setLoggerLogFileNumber(todayLogFileNumber);    
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 bool LoggerClass::openWorkFile()
 {
   closeWorkFile();
@@ -47,14 +79,25 @@ bool LoggerClass::openWorkFile()
 
   DS3231Time tm = RealtimeClock.getTime();
 
-  // формируем имя файла ггггммдд.log. (год,месяц,день)
+  if(tm.dayOfMonth != lastDayOfMonth) // начался новый день, сбрасываем номер файла за сегодня в 1
+  {
+    lastDayOfMonth = tm.dayOfMonth;
+    todayLogFileNumber = 1;
+    
+    Settings.setLoggerDayOfMonth(lastDayOfMonth);
+    Settings.setLoggerLogFileNumber(todayLogFileNumber);    
+  }
+
+  // формируем имя файла вида "ггммддnn.csv" (год,месяц,день,номер за сегодня)
   String logFileName;
   
   logFileName = LOGS_DIRECTORY;
   if(!logFileName.endsWith("/"))
     logFileName += "/";
+
+  uint16_t year = tm.year - 2000;
+  logFileName += year;
   
-  logFileName += tm.year;
   if(tm.month < 10)
     logFileName += '0';
   logFileName += tm.month;
@@ -62,6 +105,11 @@ bool LoggerClass::openWorkFile()
  if(tm.dayOfMonth < 10)
   logFileName += '0';
  logFileName += tm.dayOfMonth;
+
+  // прибавляем номер за сегодня
+ if(todayLogFileNumber < 10)
+  logFileName += '0';
+ logFileName += todayLogFileNumber; 
 
   logFileName += F(".CSV");
 
@@ -84,6 +132,8 @@ void LoggerClass::write(uint8_t* data,size_t dataLength)
     return;
 
   workFile.write(data,dataLength);
+
+  closeWorkFile();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

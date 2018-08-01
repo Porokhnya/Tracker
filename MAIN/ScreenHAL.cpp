@@ -181,6 +181,10 @@ void HalDC::setup()
  
   // инициализируем дисплей
   initHAL();
+
+  // добавляем экран мессадж-бокса
+  addScreen(MessageBoxScreen::create());
+  
    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -712,5 +716,102 @@ int HalDC::printILI(const char* st,int x, int y, int deg, bool computeStringLeng
 #endif // DISPLAY_USED == DISPLAY_ILI9341
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 HalDC Screen;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+MessageBoxScreen* MessageBox;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+MessageBoxScreen::MessageBoxScreen() : AbstractHALScreen("MessageBox")
+{
+  targetOkScreen = NULL;
+  targetCancelScreen = NULL; 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MessageBoxScreen::doSetup(HalDC* dc)
+{
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MessageBoxScreen::doUpdate(HalDC* dc)
+{
+    // тут обновляем внутреннее состояние
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MessageBoxScreen::doDraw(HalDC* hal)
+{
+  hal->setFont(SCREEN_SMALL_FONT);
+  
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  uint8_t fontWidth = hal->getFontWidth(SCREEN_SMALL_FONT);
+  int displayWidth = hal->getScreenWidth();
+  int lineSpacing = 2; 
+  int curX = 0;
+  int curY = 0;
+  
+  for(size_t i=0;i<lines.size();i++)
+  {
+    int lineLength = hal->print(lines[i],curX,curY,0,true);
+    curX = (displayWidth - lineLength*fontWidth)/2;    
+    hal->print(lines[i],curX,curY);
+    curY += fontHeight + lineSpacing;
+  }
+
+  hal->updateDisplay();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MessageBoxScreen::onButtonPressed(HalDC* hal, int pressedButton)
+{
+  switch(boxType)
+  {
+    case mbShow: // нажатие на любую кнопку ведёт к выходу из окна
+      if(targetOkScreen)
+        hal->switchToScreen(targetOkScreen);
+    break; // mbShow
+
+    case mbConfirm: // нажатие на кнопку 1 - ОК, нажатие на кнопку 2 - отмена
+    {
+      switch(pressedButton)
+      {
+        case BUTTON_1:
+          if(targetOkScreen)
+            hal->switchToScreen(targetOkScreen);
+        break;
+
+        case BUTTON_2:
+          if(targetCancelScreen)
+            hal->switchToScreen(targetCancelScreen);
+        break;
+        
+      } // switch
+    }
+    break; // mbConfirm
+    
+  } // switch
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MessageBoxScreen::show(Vector<const char*>& _lines, const char* okTarget)
+{
+  lines = _lines;
+  boxType = mbShow;
+  targetOkScreen = okTarget;
+  targetCancelScreen = NULL;
+
+  Screen.switchToScreen(this);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MessageBoxScreen::confirm(Vector<const char*>& _lines, const char* okTarget, const char* cancelTarget)
+{
+  lines = _lines;
+  boxType = mbConfirm;
+  targetOkScreen = okTarget;
+  targetCancelScreen = cancelTarget;
+
+  Screen.switchToScreen(this);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+AbstractHALScreen* MessageBoxScreen::create()
+{
+    MessageBox = new MessageBoxScreen();
+    return MessageBox;  
+}
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

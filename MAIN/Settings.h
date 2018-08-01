@@ -63,6 +63,11 @@ class SettingsClass
 
     // управление активностью логгирования
     void switchLogging(bool bOn);
+
+    void setLoggerDayOfMonth(uint8_t lastDayOfMonth);
+    void setLoggerLogFileNumber(uint8_t todayLogFileNumber);    
+    uint8_t getLoggerDayOfMonth();
+    uint8_t getLoggerLogFileNumber();
     
   private:
 

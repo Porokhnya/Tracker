@@ -206,4 +206,40 @@ private:
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 extern HalDC Screen;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef enum
+{
+  mbShow,
+  mbConfirm
+  
+} MessageBoxType;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+class MessageBoxScreen : public AbstractHALScreen
+{
+  public:
+
+  static AbstractHALScreen* create();
+
+  void confirm(Vector<const char*>& lines, const char* okTarget, const char* cancelTarget);
+  void show(Vector<const char*>& lines, const char* okTarget);
+    
+protected:
+
+    virtual void doSetup(HalDC* dc);
+    virtual void doUpdate(HalDC* dc);
+    virtual void doDraw(HalDC* dc);
+    virtual void onButtonPressed(HalDC* dc, int pressedButton);
+
+private:
+      MessageBoxScreen();
+
+      const char* targetOkScreen;
+      const char* targetCancelScreen;
+      Vector<const char*> lines;
+
+      MessageBoxType boxType;
+  
+};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+extern MessageBoxScreen* MessageBox;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #endif
