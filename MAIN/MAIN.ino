@@ -23,7 +23,7 @@ void screenAction(AbstractHALScreen* screen)
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #define LED 13
-#define Serial SERIAL_PORT_USBVIRTUAL     // Подключить USB порт
+#define Serial SerialUSB     // Подключить USB порт
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Uart Serial2(&sercom2, 3, 4, SERCOM_RX_PAD_1, UART_TX_PAD_0); // Подключить Serial2
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -102,15 +102,15 @@ void setup()
   Serial.print(F("TRACKER "));
   Serial.println(SOFTWARE_VERSION);
 
-  /*
-  // тестовый код создания кучи файлов на SD
-  const char* buff = "DUMMY STRING\r\n";
-  for(int i=0;i<20;i++)
-  {    
-    Logger.write((uint8_t*)buff,strlen(buff));
-    Logger.newLogFile();
-  }
-  */
+  //
+  //// тестовый код создания кучи файлов на SD
+  //const char* buff = "DUMMY STRING\r\n";
+  //for(int i=0;i<20;i++)
+  //{    
+  //  Logger.write((uint8_t*)buff,strlen(buff));
+  //  Logger.newLogFile();
+  //}
+  //
   
 
 }
