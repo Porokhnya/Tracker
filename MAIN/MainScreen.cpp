@@ -100,11 +100,53 @@ void MainScreen::doUpdate(HalDC* hal)
     drawADC(hal);
     drawTime(hal);
     drawLogState(hal);
+
+    drawLogDuration(hal);
     
     hal->updateDisplay();
   }  
 }
 
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MainScreen::drawLogDuration(HalDC* hal)
+{
+    // рисуем продолжительность логгирования - в часах
+    String durationCaption;
+    uint32_t duration = Settings.getLoggingDuration();
+  
+    duration /= 1000; // в секунды
+    duration /= 60; // в минуты
+    duration /= 60; // в часы
+  
+    durationCaption = duration;
+
+    hal->setFont(SCREEN_SMALL_FONT);
+    hal->setColor(SCREEN_TEXT_COLOR);
+  
+    uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+    uint8_t fontWidth = hal->getFontWidth(SCREEN_SMALL_FONT);
+  
+    uint16_t screenWidth = hal->getScreenWidth();
+    uint16_t screenHeight = hal->getScreenHeight();
+  
+    uint16_t captionWidth = fontWidth*durationCaption.length();
+
+    // рисуем слева от бокса интервала логгирования
+    String logCaption = "0";
+    if(lastLogActiveFlag)
+    {
+      logCaption = Settings.getLoggingInterval();
+    }
+    
+    uint16_t drawX = screenWidth - captionWidth - 12 - logCaption.length()*fontWidth;
+    uint16_t drawY = screenHeight - fontHeight - 2;
+  
+    hal->print(durationCaption.c_str(),drawX, drawY);
+    
+    hal->drawRoundRect(drawX - 2, drawY - 2, drawX + captionWidth + 2, drawY + fontHeight);
+
+  
+}
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawADC(HalDC* hal)
 {  
@@ -133,23 +175,21 @@ void MainScreen::drawLogState(HalDC* hal)
   hal->setColor(SCREEN_TEXT_COLOR);
 
   uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-  uint8_t fontWidth = hal->getFontHeight(SCREEN_SMALL_FONT);
+  uint8_t fontWidth = hal->getFontWidth(SCREEN_SMALL_FONT);
 
   uint16_t screenWidth = hal->getScreenWidth();
   uint16_t screenHeight = hal->getScreenHeight();
 
   uint16_t captionWidth = fontWidth*logCaption.length();
-  uint16_t drawX = screenWidth - captionWidth - 2;
+  uint16_t drawX = screenWidth - captionWidth - 4;
   uint16_t drawY = screenHeight - fontHeight - 2;
 
 
   hal->print(logCaption.c_str(),drawX, drawY);
-
-  int add = 2;
-  if(logCaption.length() < 2)
-    add = 0;
     
-  hal->drawRoundRect(drawX - 2, drawY - 2, drawX + captionWidth - add, drawY + fontHeight);
+  hal->drawRoundRect(drawX - 2, drawY - 2, drawX + captionWidth + 2, drawY + fontHeight);
+
+
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

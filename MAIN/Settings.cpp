@@ -66,6 +66,15 @@ SettingsClass::SettingsClass()
   bWantToLogFlag = false;
   bWantCheckAlarm = false;
   alarmTimer = 0;
+  loggingStartTimer = 0;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint32_t SettingsClass::getLoggingDuration()
+{
+    if(!bLoggingEnabled)
+      return 0;
+
+    return (millis() - loggingStartTimer);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint8_t SettingsClass::getLoggingInterval()
@@ -138,6 +147,11 @@ void SettingsClass::switchLogging(bool bOn)
 {
     bLoggingEnabled = bOn;
     eeprom->write(LOGGING_ENABLED_ADDRESS, bLoggingEnabled ? 1 : 0);
+
+    if(bLoggingEnabled)
+      loggingStartTimer = millis();
+    else
+      loggingStartTimer = 0;
 
     setupDS3231Alarm();
 }
@@ -259,6 +273,12 @@ void SettingsClass::begin()
   // подключаем Si7021
   si7021.begin();
   
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::turnPowerOff()
+{
+   // выключаем питание контроллера
+   MCP.digitalWrite(PWR_On_Out, HIGH);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::checkPower()

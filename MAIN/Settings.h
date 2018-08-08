@@ -76,9 +76,15 @@ class SettingsClass
     uint8_t getLoggerDayOfMonth();
     uint8_t getLoggerLogFileNumber();
 
+    // возвращает тип питания - от батарей или USB
     PowerType getPowerType() {return powerType;}
+    void turnPowerOff(); // выключает питание контроллера
+
+    uint32_t getLoggingDuration(); // возвращает длительность логгирования
     
   private:
+
+      uint32_t loggingStartTimer;
 
       PowerType powerType;
       static void checkPower();

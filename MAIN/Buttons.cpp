@@ -47,11 +47,12 @@ void ButtonsList::update()
           // нажали кнопку отключения питания
           if(Settings.getPowerType() == batteryPower)
           {
-            // питаемся от батареек, здесь можно выключать питание!
+            // питаемся от батареек, здесь можно выключать питание
 
               DBGLN(F("POWER KEY DETECTED, TURN POWER OFF!!!"));
             
-            // TODO: ТУТ СДЕЛАТЬ ТО, ЧТО НАДО!!!
+            // TODO: ТУТ СДЕЛАТЬ ТО, ЧТО НАДО. СЕЙЧАС СРАЗУ РУБИТСЯ ПИТАНИЕ.
+            Settings.turnPowerOff();
           }
         }
         else
