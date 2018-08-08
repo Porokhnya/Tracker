@@ -168,6 +168,30 @@ void SettingsClass::alarmFunction()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
+
+  // подключаем MCP на адрес 1
+  MCP.begin(1);
+
+  // настраиваем "подхват питания"
+  MCP.pinMode(PWR_On_Out,OUTPUT);
+  // Для поддержания нулевого уровня на затворе ключа в первую очередь необходимо установить нулевой уровень на выводе 5 MCP23017 
+  MCP.digitalWrite(PWR_On_Out, LOW);
+
+  // настраиваем индикатор типа питания
+  pinMode(PWR_On_In,INPUT);
+
+  // смотрим, какое питание использовано - батарейное или USB?
+  /*
+   То есть при выполнении программы setup контролируем вывод PWR_On_In. Если на нем присутствует нулевой потенциал, 
+   это означает подключен внутренний источник (батарейки), при высоком уровне - питание осуществляется от порта USB.
+   */
+
+  // проверяем тип питания
+  checkPower();  
+
+ // Постоянно контролируем состояние сигнала на выводе 38 (PWR_On_In )
+ attachInterrupt(digitalPinToInterrupt(PWR_On_In), checkPower, CHANGE);
+  
  
   eeprom = new AT24C64();
 
@@ -201,9 +225,7 @@ void SettingsClass::begin()
   
   si7021Data.temperature = NO_TEMPERATURE_DATA;
   si7021Data.humidity = NO_TEMPERATURE_DATA;
-
-  // подключаем MCP на адрес 1
-  MCP.begin(1);
+  
 
   // настраиваем каналы клавиатуры
   MCP.pinMode(Key_line_Out0, OUTPUT); // Настроить кнопки
@@ -225,10 +247,7 @@ void SettingsClass::begin()
 
   // включаем подсветку дисплея
   displayBacklight(true);
-
-
-  // настраиваем "подхват питания"
-  MCP.pinMode(PWR_On_Out,OUTPUT);
+  
 
   // настраиваем управление питанием ESP
   MCP.pinMode(PWR_ESP,OUTPUT);
@@ -240,6 +259,14 @@ void SettingsClass::begin()
   // подключаем Si7021
   si7021.begin();
   
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::checkPower()
+{
+  if(!digitalRead(PWR_On_In))
+    Settings.powerType = batteryPower;
+ else
+   Settings.powerType = powerViaUSB;  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::updateDataFromSensors()

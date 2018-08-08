@@ -9,6 +9,13 @@
 #include "LinkList.h"
 #include "CONFIG.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef enum
+{
+  powerViaUSB,
+  batteryPower
+  
+} PowerType;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef struct
 {
   int raw;
@@ -68,8 +75,13 @@ class SettingsClass
     void setLoggerLogFileNumber(uint8_t todayLogFileNumber);    
     uint8_t getLoggerDayOfMonth();
     uint8_t getLoggerLogFileNumber();
+
+    PowerType getPowerType() {return powerType;}
     
   private:
+
+      PowerType powerType;
+      static void checkPower();
 
       void setupDS3231Alarm();
       static void alarmFunction();
