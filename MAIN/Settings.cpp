@@ -12,6 +12,7 @@ uint8_t KNOWN_LOGGING_INTERVALS[ LOGGING_INTERVALS_COUNT ] = { LOGGING_INTERVALS
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::test_key()
 {
+    
   pressedKey = 0;
   Settings.MCP.digitalWrite(Key_line_Out0, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out1, HIGH);
@@ -30,10 +31,12 @@ void SettingsClass::test_key()
           }
      // Settings.MCP.digitalWrite(i, HIGH);
   }
+  
   Settings.MCP.digitalWrite(Key_line_Out0, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out1, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out2, HIGH);
   Settings.MCP.digitalWrite(Key_line_Out3, HIGH);
+  
   for (int i = 0; i < 4; i++)
   {
       Settings.MCP.digitalWrite(i, LOW);
@@ -51,7 +54,6 @@ void SettingsClass::test_key()
   Settings.MCP.digitalWrite(Key_line_Out2, LOW);
   Settings.MCP.digitalWrite(Key_line_Out3, LOW);
 
-  //SerialUSB.println(pressedKey);
   
   Buttons.onKeyPressed(pressedKey);
   pressedKey = 0;
@@ -237,7 +239,7 @@ void SettingsClass::begin()
   DBGLN(F("Setup power hook..."));
   MCP.pinMode(PWR_On_Out,OUTPUT);
   // Для поддержания нулевого уровня на затворе ключа в первую очередь необходимо установить нулевой уровень на выводе 5 MCP23017 
-  MCP.digitalWrite(PWR_On_Out, LOW);
+  MCP.digitalWrite(PWR_On_Out, HIGH);
 
   // настраиваем индикатор типа питания
   pinMode(PWR_On_In,INPUT);
@@ -337,7 +339,7 @@ void SettingsClass::turnPowerOff()
     accumulateLoggingDuration();
   
    // потом выключаем питание контроллера
-   MCP.digitalWrite(PWR_On_Out, HIGH);
+   MCP.digitalWrite(PWR_On_Out, LOW);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::checkPower()
@@ -454,9 +456,9 @@ void SettingsClass::update()
     
   } // if(bWantToLogFlag)
 
-  // каждую минуту работы МК накапливаем значение общего времени логгирования
+  // каждую 10 минут работы МК накапливаем значение общего времени логгирования
   static uint32_t lastMillis = 0;
-  if(millis() - lastMillis > 60000)
+  if(millis() - lastMillis > 600000)
   {
     accumulateLoggingDuration();
     lastMillis = millis();

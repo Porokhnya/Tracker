@@ -44,7 +44,7 @@ void ButtonsList::update()
         }
         else if(pressedKey == BUTTON_POWER)
         {
-          /*
+          
           // нажали кнопку отключения питания
           if(Settings.getPowerType() == batteryPower)
           {
@@ -56,7 +56,7 @@ void ButtonsList::update()
                 // TODO: ТУТ СДЕЛАТЬ ТО, ЧТО НАДО. СЕЙЧАС СРАЗУ РУБИТСЯ ПИТАНИЕ.
                 Settings.turnPowerOff();
           }
-          */
+          
         }
         else
         {
