@@ -358,15 +358,15 @@ void MainScreen::drawTime(HalDC* hal)
 void MainScreen::doDraw(HalDC* hal)
 {
 
-  hal->clearScreen();
+    hal->clearScreen();
   
-  //temp = Settings.getDS18B20Temperature();  
    drawTemperature(hal);
 
    adcValue = Settings.getAnalogSensorValue();
    drawADC(hal);
    drawTime(hal);
    drawLogState(hal);
+   drawLogDuration(hal);
 
    hal->updateDisplay();
 }
@@ -542,31 +542,37 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
   {
       case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
       {
-        Link<uint8_t>* leaf = intervalsRingBuffer.head();
-        uint8_t idx = Settings.getLoggingIntervalIndex();
-        
-        while(leaf->data != idx)
+        if(!Settings.isLoggingEnabled()) // Запретить изменение интервала если лог включен
+        {
+          Link<uint8_t>* leaf = intervalsRingBuffer.head();
+          uint8_t idx = Settings.getLoggingIntervalIndex();
+          
+          while(leaf->data != idx)
+            leaf = leaf->next;
+  
           leaf = leaf->next;
-
-        leaf = leaf->next;
-        
-        Settings.setLoggingIntervalIndex(leaf->data);
-        drawGUI(hal);
+          
+          Settings.setLoggingIntervalIndex(leaf->data);
+          drawGUI(hal);
+        }
       } 
       break;
       
 	    case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
       {
-        Link<uint8_t>* leaf = intervalsRingBuffer.tail();
-        uint8_t idx = Settings.getLoggingIntervalIndex();
-        
-        while(leaf->data != idx)
+        if(!Settings.isLoggingEnabled()) // Запретить изменение интервала если лог включен
+        {
+          Link<uint8_t>* leaf = intervalsRingBuffer.tail();
+          uint8_t idx = Settings.getLoggingIntervalIndex();
+          
+          while(leaf->data != idx)
+            leaf = leaf->prev;
+  
           leaf = leaf->prev;
-
-        leaf = leaf->prev;
-        
-        Settings.setLoggingIntervalIndex(leaf->data);
-        drawGUI(hal);      
+          
+          Settings.setLoggingIntervalIndex(leaf->data);
+          drawGUI(hal); 
+        }     
       }
 		  break;
       
