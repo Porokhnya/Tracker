@@ -60,7 +60,6 @@ void setup()
   pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
   delay(1000);
-  //while(!Serial);
   
   
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);
