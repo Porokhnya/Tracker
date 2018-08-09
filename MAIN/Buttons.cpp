@@ -13,8 +13,7 @@ ButtonsList::ButtonsList()
 }
 //--------------------------------------------------------------------------------------------------
 void ButtonsList::begin()
-{
-  // redButton.begin(BUTTON_RED);
+{  
 
   inited = true;
 }
@@ -35,29 +34,13 @@ void ButtonsList::update()
       wantProcessKey = false;
 
       if (pressedKey > 0)
-      {
+      {        
         if (pressedKey == BUTTON_7)
         {
           // выключаем подсветку
           Settings.displayBacklight(false);
   
-        }
-        else if(pressedKey == BUTTON_POWER)
-        {
-          
-          // нажали кнопку отключения питания
-          if(Settings.getPowerType() == batteryPower)
-          {
-            // питаемся от батареек, здесь можно выключать питание
-            // но это нужно делать только после ВТОРОГО нажатия кнопки, т.к. первым - контроллер включается!
-
-                DBGLN(F("POWER KEY DETECTED, TURN POWER OFF!!!"));
-            
-                // TODO: ТУТ СДЕЛАТЬ ТО, ЧТО НАДО. СЕЙЧАС СРАЗУ РУБИТСЯ ПИТАНИЕ.
-                Settings.turnPowerOff();
-          }
-          
-        }
+        }        
         else
         {
           // включаем подсветку
@@ -74,14 +57,6 @@ void ButtonsList::update()
   
       }      
    } // if(wantProcessKey)
-
-
-  /*
-    if(redButton.isClicked())
-    {
-    DBGLN(F("RED BUTTON CLICKED!"));
-    }
-  */
 
 }
 //--------------------------------------------------------------------------------------------------

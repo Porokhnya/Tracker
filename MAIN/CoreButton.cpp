@@ -16,6 +16,8 @@ void Button::begin(uint8_t _pin, bool _pullup)
   
   if(pullUp)
     pinMode(buttonPin, INPUT_PULLUP); // подтягиваем к питанию, если попросили
+  else
+    pinMode(buttonPin, INPUT);
 
   reset();
 }

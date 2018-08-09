@@ -235,14 +235,9 @@ void SettingsClass::begin()
   // подключаем MCP на адрес 1
   MCP.begin(1);
 
-  // настраиваем "подхват питания"
-  DBGLN(F("Setup power hook..."));
-  MCP.pinMode(PWR_On_Out,OUTPUT);
-  // Для поддержания нулевого уровня на затворе ключа в первую очередь необходимо установить нулевой уровень на выводе 5 MCP23017 
-  MCP.digitalWrite(PWR_On_Out, HIGH);
 
   // настраиваем индикатор типа питания
-  pinMode(PWR_On_In,INPUT);
+  pinMode(BUTTON_POWER,INPUT);
 
   // смотрим, какое питание использовано - батарейное или USB?
   /*
@@ -253,8 +248,14 @@ void SettingsClass::begin()
   // проверяем тип питания
   checkPower();  
 
- // Постоянно контролируем состояние сигнала на выводе 38 (PWR_On_In)
- attachInterrupt(digitalPinToInterrupt(PWR_On_In), checkPower, CHANGE);
+ // Постоянно контролируем состояние сигнала на выводе 38 (BUTTON_POWER)
+ //attachInterrupt(digitalPinToInterrupt(BUTTON_POWER), checkPower, CHANGE);
+
+  // настраиваем "подхват питания"
+  DBGLN(F("Setup power hook..."));
+  MCP.pinMode(PWR_On_Out,OUTPUT);
+  // Для поддержания нулевого уровня на затворе ключа в первую очередь необходимо установить нулевой уровень на выводе 5 MCP23017 
+  MCP.digitalWrite(PWR_On_Out, HIGH);
   
  
   eeprom = new AT24C64();
@@ -330,6 +331,9 @@ void SettingsClass::begin()
 
   // подключаем Si7021
   si7021.begin();
+
+
+  powerButton.begin(BUTTON_POWER);
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -342,12 +346,23 @@ void SettingsClass::turnPowerOff()
    MCP.digitalWrite(PWR_On_Out, LOW);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+PowerType SettingsClass::getPowerType()
+{
+  return powerType;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::checkPower()
 {
-  if(!digitalRead(PWR_On_In))
+  if(!digitalRead(BUTTON_POWER))
+  {
     Settings.powerType = batteryPower;
+    DBGLN(F("BATTERY POWER !!!"));
+  }
  else
+ {
    Settings.powerType = powerViaUSB;  
+    DBGLN(F("POWER  VIA USB !!!"));
+ }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::updateDataFromSensors()
@@ -463,6 +478,32 @@ void SettingsClass::update()
     accumulateLoggingDuration();
     lastMillis = millis();
   }
+
+
+    powerButton.update();
+    if(powerButton.isClicked())
+    {
+     // DBGLN(F("POWER BUTTON CLICKED!!!"));
+      
+      // нажали кнопку отключения питания
+      if(getPowerType() == batteryPower)
+      {
+        static bool bFirst = true;
+
+          if(!bFirst)
+          {
+            // питаемся от батареек, здесь можно выключать питание
+            // но это нужно делать только после ВТОРОГО нажатия кнопки, т.к. первым - контроллер включается!
+
+            DBGLN(F("POWER KEY DETECTED, TURN POWER OFF!!!"));
+        
+            // TODO: ТУТ СДЕЛАТЬ ТО, ЧТО НАДО. СЕЙЧАС СРАЗУ РУБИТСЯ ПИТАНИЕ.
+            turnPowerOff();
+          }
+          bFirst = false;
+      }
+       
+    }  // if(powerButton.isClicked())
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

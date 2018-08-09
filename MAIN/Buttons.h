@@ -1,7 +1,6 @@
 #pragma once
 //--------------------------------------------------------------------------------------------------
 #include <Arduino.h>
-#include "CoreButton.h"
 //--------------------------------------------------------------------------------------------------
 class ButtonsList
 {
@@ -10,7 +9,6 @@ class ButtonsList
     void begin();
     void update();
 
-//    Button redButton;
 
   void onKeyPressed(int key);
 

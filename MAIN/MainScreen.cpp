@@ -222,7 +222,6 @@ void MainScreen::drawTemperature(HalDC* hal)
     displayString += ';'; // градус
   }
 
-
   uint16_t stringWidth = displayString.length()*fontWidth;
 
   uint16_t drawX = (screenWidth - stringWidth)/2;

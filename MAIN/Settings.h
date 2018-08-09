@@ -8,11 +8,12 @@
 #include <Adafruit_Si7021.h>
 #include "LinkList.h"
 #include "CONFIG.h"
+#include "CoreButton.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
 {
-  powerViaUSB,
-  batteryPower
+  powerViaUSB = 10,
+  batteryPower = 20
   
 } PowerType;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -77,12 +78,15 @@ class SettingsClass
     uint8_t getLoggerLogFileNumber();
 
     // возвращает тип питания - от батарей или USB
-    PowerType getPowerType() {return powerType;}
+    PowerType getPowerType();
     void turnPowerOff(); // выключает питание контроллера
 
     uint32_t getLoggingDuration(); // возвращает длительность логгирования
     
   private:
+
+
+      Button powerButton;      
 
       uint32_t read32(uint16_t address);
       void write32(uint16_t address, uint32_t val);

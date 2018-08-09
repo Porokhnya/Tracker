@@ -37,7 +37,7 @@ void setup()
   Serial1.begin(115200); // WiFi
 
   // раскомментировать для отладочной информации !!!
-  //while(!Serial);
+ // while(!Serial);
 
   Wire.begin();
 
@@ -46,15 +46,16 @@ void setup()
   // Отключить вывод импульсов 32 кгц на выходе
   RealtimeClock.enable32kHz(false);
 
-  // настраиваем железные кнопки
-  Buttons.begin();
 
   DBGLN(F("INIT settings..."));
   Settings.begin();
   Logger.begin();
   DBGLN(F("Settings inited."));
 
-  Serial2.begin(19200); // Возможно для принтера
+  // настраиваем железные кнопки
+  Buttons.begin();
+
+  Serial2.begin(SERIAL_SPEED); // Возможно для принтера
 
   //Assign pins 3 & 4 SERCOM functionality
   pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
