@@ -113,11 +113,10 @@ void MainScreen::drawLogDuration(HalDC* hal)
     // рисуем продолжительность логгирования - в часах
     String durationCaption;
     uint32_t duration = Settings.getLoggingDuration();
-  
-    duration /= 1000; // в секунды
+
     duration /= 60; // в минуты
     duration /= 60; // в часы
-  
+    
     durationCaption = duration;
 
     hal->setFont(SCREEN_SMALL_FONT);
