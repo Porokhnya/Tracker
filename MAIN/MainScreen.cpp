@@ -258,55 +258,7 @@ void MainScreen::drawTemperature(HalDC* hal)
 
   drawX += stringWidth;
   hal->setFont(SCREEN_SMALL_FONT);
-  hal->print(percents.c_str(), drawX, drawY);
-
-  
-   
-/*  
-  // отрисовка температуры 
-  hal->setFont(SCREEN_SMALL_FONT);
-  hal->setColor(SCREEN_TEXT_COLOR);
-
-  // рисуем температуру
-  String tempString = F("Темп1: ");
-  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-  
-  
-  if(lastSensorData.temperature == NO_TEMPERATURE_DATA) // нет температуры
-  {
-    tempString += F("<нет>");
-  }
-  else // есть температура
-  {   
-    tempString += lastSensorData.temperature;
-    tempString += DECIMAL_SEPARATOR;
-
-    if(lastSensorData.temperatureFract < 10)
-      tempString += '0';
-
-    tempString += lastSensorData.temperatureFract;
-  }
-  hal->print(tempString.c_str(), 0, 0);
-
-  tempString = F("Влажн: ");
-
- if(lastSensorData.humidity == NO_TEMPERATURE_DATA) // нет влажности
-  {
-    tempString += F("<нет>");
-  }
-  else // есть влажность
-  {   
-    tempString += lastSensorData.humidity;
-    tempString += DECIMAL_SEPARATOR;
-
-    if(lastSensorData.humidityFract < 10)
-      tempString += '0';
-
-    tempString += lastSensorData.humidityFract;
-    tempString += '%';
-  }
-  hal->print(tempString.c_str(), 0, fontHeight + 2);
-*/
+  hal->print(percents.c_str(), drawX, drawY);   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTime(HalDC* hal)
@@ -902,7 +854,11 @@ void ExportLogsScreen::onActivate()
 void ExportLogsScreen::doSetup(HalDC* hal)
 {
   // первоначальная настройка экрана
+
+  // добавляем экран экспорта в Serial
   hal->addScreen(ExportToSerialScreen::create());
+
+  //TODO: ТУТ ДОБАВЛЯТЬ ЭКРАНЫ ЭКСПОРТА по WiFi И НА ПРИНТЕР!!!
 
   hasSD = SDInit::InitSD();
 
@@ -1096,33 +1052,11 @@ void MenuScreen2::doSetup(HalDC* hal)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-bool MenuScreen2::isExportDone()
-{
-    return (millis() - dummyTimerNeedToRemoveLater) > 5000;
-}
-*/
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen2::doUpdate(HalDC* hal)
 {
 	if (!isActive())
 		return;
-/*
-  if(exportActive) // активен экспорт, надо проверить на его окончание
-  {
-    if(isExportDone())
-    {
-       exportActive = false;
-       drawMode = dmExportDone;
-       drawGUI(hal);
 
-      ignoreKeys = false;
-    }
-    
-    return;    
-  } // if(exportActive)
-
-  */ 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MenuScreen2::drawStartScreen(HalDC* hal)
@@ -1147,72 +1081,6 @@ void MenuScreen2::drawStartScreen(HalDC* hal)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-void MenuScreen2::drawExportToSerial(HalDC* hal)
-{
-  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-  
-  int drawX = 0, drawY = 0;
-
-  hal->print("Идёт экспорт", drawX, drawY);
-  
-  drawY += fontHeight + 2;
-  hal->print("в COM-порт.", drawX, drawY);
-
-  drawY += fontHeight*2 + 2*2;
-  hal->print("Ждите...", drawX, drawY);
-
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen2::drawExportToWiFi(HalDC* hal)
-{
-  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-  
-  int drawX = 0, drawY = 0;
-
-  hal->print("Идёт экспорт", drawX, drawY);
-  
-  drawY += fontHeight + 2;
-  hal->print("по WiFi.", drawX, drawY);
-
-  drawY += fontHeight*2 + 2*2;
-  hal->print("Ждите...", drawX, drawY);
-  
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen2::drawExportToPrinter(HalDC* hal)
-{
-  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-  
-  int drawX = 0, drawY = 0;
-
-  hal->print("Идёт экспорт", drawX, drawY);
-  
-  drawY += fontHeight + 2;
-  hal->print("на принтер.", drawX, drawY);
-
-  drawY += fontHeight*2 + 2*2;
-  hal->print("Ждите...", drawX, drawY);
-  
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen2::drawExportDone(HalDC* hal)
-{
-  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
-  
-  int drawX = 0, drawY = 0;
-
-  hal->print("Завершено.", drawX, drawY);
-  
-  drawY += fontHeight + 2;
-  hal->print("Нажмите любую", drawX, drawY);
-
-  drawY += fontHeight + 2;
-  hal->print("кнопку.", drawX, drawY);
-  
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-*/
 void MenuScreen2::drawGUI(HalDC* hal)
 {
   hal->clearScreen();
@@ -1220,30 +1088,6 @@ void MenuScreen2::drawGUI(HalDC* hal)
   hal->setFont(SCREEN_SMALL_FONT);
   hal->setColor(SCREEN_TEXT_COLOR);
 
-/*
-  switch(drawMode)
-  {
-    case dmStartScreen:
-      drawStartScreen(hal);
-    break;
-
-    case dmExportToSerial:
-      drawExportToSerial(hal);
-    break;
-
-    case dmExportToWiFi:
-      drawExportToWiFi(hal);
-    break;
-
-    case dmExportToPrinter:
-      drawExportToPrinter(hal);
-    break;
-
-    case dmExportDone:
-      drawExportDone(hal);
-    break;
-  }
-  */
 
   drawStartScreen(hal);
    
@@ -1259,10 +1103,7 @@ void MenuScreen2::doDraw(HalDC* hal)
 void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 {
 	// обрабатываем нажатия на кнопки
- /*
-  if(ignoreKeys)
-  return;
-  */
+
 
 #if DISPLAY_USED == DISPLAY_ILI9341
 
@@ -1276,14 +1117,6 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 
 #elif DISPLAY_USED == DISPLAY_NOKIA5110
 
-/*
-  if(dmExportDone == drawMode) // если рисуем экран окончания экспорта - любая кнопка выходит иэ этого экрана на стартовую позицию до экспорта
-  {
-    drawMode = dmStartScreen;
-    drawGUI(hal);
-    return;
-  }
-*/
 	// Для Nokia кнопки идут с 1
 	switch (pressedButton)
 	{
@@ -1292,13 +1125,6 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
       exportLogsScreen->setMode(exportToSerial);
       exportLogsScreen->rescanFiles();
       hal->switchToScreen(exportLogsScreen);
-    /*
-      ignoreKeys = true;
-      dummyTimerNeedToRemoveLater = millis();
-      drawMode = dmExportToSerial;
-      drawGUI(hal);
-      exportActive = true;
-      */
 	  }
     break;
       
@@ -1308,13 +1134,6 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
       exportLogsScreen->rescanFiles();
       hal->switchToScreen(exportLogsScreen);
       
-      /*
-      ignoreKeys = true;
-      dummyTimerNeedToRemoveLater = millis();
-      drawMode = dmExportToWiFi;
-      drawGUI(hal);
-      exportActive = true;
-      */
     }
   	break;
       
@@ -1324,13 +1143,6 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
       exportLogsScreen->rescanFiles();
       hal->switchToScreen(exportLogsScreen);
       
-      /*
-      ignoreKeys = true;
-      dummyTimerNeedToRemoveLater = millis();
-      drawMode = dmExportToPrinter;
-      drawGUI(hal);
-      exportActive = true;      
-      */
     }
   	break;
     
