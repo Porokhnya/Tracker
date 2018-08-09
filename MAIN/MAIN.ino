@@ -35,15 +35,11 @@ void setup()
 {
   Serial.begin(SERIAL_SPEED);
   Serial1.begin(115200); // WiFi
-  Serial2.begin(19200); // Возможно для принтера
 
-  //Assign pins 3 & 4 SERCOM functionality
-  pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
-  pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
-  delay(1000);
+  // раскомментировать для отладочной информации !!!
   //while(!Serial);
 
- Wire.begin();
+  Wire.begin();
 
   DBGLN(F("Init RTC..."));
   RealtimeClock.begin(RTC_WIRE_NUMBER);           // запускаем их на шине I2C 1 (SDA1, SCL1)
@@ -57,6 +53,14 @@ void setup()
   Settings.begin();
   Logger.begin();
   DBGLN(F("Settings inited."));
+
+  Serial2.begin(19200); // Возможно для принтера
+
+  //Assign pins 3 & 4 SERCOM functionality
+  pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
+  pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
+  delay(1000);
+  //while(!Serial);
   
   
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);

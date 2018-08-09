@@ -66,7 +66,6 @@ SettingsClass::SettingsClass()
   bWantToLogFlag = false;
   bWantCheckAlarm = false;
   alarmTimer = 0;
-  loggingStartTimer = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint32_t SettingsClass::getLoggingDuration()
@@ -74,7 +73,7 @@ uint32_t SettingsClass::getLoggingDuration()
     if(!bLoggingEnabled)
       return 0;
 
-    return (millis() - loggingStartTimer);
+  return read32(LOGGING_DURATION_VALUE_ADDRESS);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint8_t SettingsClass::getLoggingInterval()
@@ -149,11 +148,59 @@ void SettingsClass::switchLogging(bool bOn)
     eeprom->write(LOGGING_ENABLED_ADDRESS, bLoggingEnabled ? 1 : 0);
 
     if(bLoggingEnabled)
-      loggingStartTimer = millis();
+    {
+      // выставляем таймер начала логгирования на текущее значение unixtime
+      saveLoggingTimer();
+    }
     else
-      loggingStartTimer = 0;
+    {
+      // при каждом выключении логгирования мы должны накапливать уже отработанные секунды
+      // логгирования, т.к. при включении логгирования время начала логгирования перезаписывается
+      accumulateLoggingDuration();
+    }
 
+    // настраиваем будильник на часах
     setupDS3231Alarm();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::accumulateLoggingDuration()
+{
+    // аккумулируем время логгирования
+  
+    uint32_t loggingStartedAt = read32(LOGGING_DURATION_ADDRESS);
+    if(loggingStartedAt > 0)
+    {
+      DS3231Time tm = RealtimeClock.getTime();
+      uint32_t ut = tm.unixtime();
+
+      uint32_t diff = ut - loggingStartedAt;
+
+      // сохраняем накомленное значение
+      uint32_t accumulatedVal = read32(LOGGING_DURATION_VALUE_ADDRESS);
+      accumulatedVal += diff;
+      write32(LOGGING_DURATION_VALUE_ADDRESS,accumulatedVal);
+
+    }
+    
+    // перезаписываем время начала логгирования
+    saveLoggingTimer();
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::saveLoggingTimer()
+{
+  // если логгирование активно - выставляем таймер начала логгирования
+  if(bLoggingEnabled)
+  {
+    DS3231Time tm = RealtimeClock.getTime();
+    uint32_t ut = tm.unixtime();
+    write32(LOGGING_DURATION_ADDRESS,ut);  
+  }
+  else // иначе пишем туда нолик
+  {
+    write32(LOGGING_DURATION_ADDRESS,0);      
+  }
+  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::setupDS3231Alarm()
@@ -187,6 +234,7 @@ void SettingsClass::begin()
   MCP.begin(1);
 
   // настраиваем "подхват питания"
+  DBGLN(F("Setup power hook..."));
   MCP.pinMode(PWR_On_Out,OUTPUT);
   // Для поддержания нулевого уровня на затворе ключа в первую очередь необходимо установить нулевой уровень на выводе 5 MCP23017 
   MCP.digitalWrite(PWR_On_Out, LOW);
@@ -203,7 +251,7 @@ void SettingsClass::begin()
   // проверяем тип питания
   checkPower();  
 
- // Постоянно контролируем состояние сигнала на выводе 38 (PWR_On_In )
+ // Постоянно контролируем состояние сигнала на выводе 38 (PWR_On_In)
  attachInterrupt(digitalPinToInterrupt(PWR_On_In), checkPower, CHANGE);
   
  
@@ -227,6 +275,14 @@ void SettingsClass::begin()
   }
         
   bLoggingEnabled = lEn == 1;
+
+  // ничего не было сохранено - значит, надо сохранить время начала логгирования
+  if(read32(LOGGING_DURATION_ADDRESS) < 1)
+    saveLoggingTimer();
+    
+  // аккумулируем общее время логгирования
+  accumulateLoggingDuration();
+
 
   attachInterrupt(RTC_ALARM_PIN, alarmFunction, FALLING); // прерывание вызывается только при смене значения на порту с LOW на HIGH
 
@@ -277,7 +333,10 @@ void SettingsClass::begin()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::turnPowerOff()
 {
-   // выключаем питание контроллера
+    // сперва аккумулируем значение времени логгирования
+    accumulateLoggingDuration();
+  
+   // потом выключаем питание контроллера
    MCP.digitalWrite(PWR_On_Out, HIGH);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -394,62 +453,32 @@ void SettingsClass::update()
     } // if(bLoggingEnabled)
     
   } // if(bWantToLogFlag)
+
+  // каждую минуту работы МК накапливаем значение общего времени логгирования
+  static uint32_t lastMillis = 0;
+  if(millis() - lastMillis > 60000)
+  {
+    accumulateLoggingDuration();
+    lastMillis = millis();
+  }
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-uint16_t SettingsClass::getChannelPulses(uint8_t channelNum)
+uint32_t SettingsClass::read32(uint16_t address)
 {
-  uint16_t addr = 0;
-  switch(channelNum)
-  {
-    case 0:
-    addr = COUNT_PULSES_STORE_ADDRESS1;
-    break;
-    
-    case 1:
-    addr = COUNT_PULSES_STORE_ADDRESS2;
-    break;
-    
-    case 2:
-    addr = COUNT_PULSES_STORE_ADDRESS3;
-    break;
-  }
-
-  uint16_t result = 0;
+  uint32_t result = 0;
   uint8_t* writePtr = (uint8_t*)&result;
-  eeprom->read(addr,writePtr,sizeof(uint16_t));
+  eeprom->read(address,writePtr,sizeof(uint32_t));
 
-  if(result == 0xFFFF)
-  {
+  if(result == 0xFFFFFFFF)
     result = 0;
-    setChannelPulses(channelNum,result);
-  }
 
   return result;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SettingsClass::setChannelPulses(uint8_t channelNum, uint16_t val)
+void SettingsClass::write32(uint16_t address, uint32_t val)
 {
-  uint16_t addr = 0;
-  switch(channelNum)
-  {
-    case 0:
-    addr = COUNT_PULSES_STORE_ADDRESS1;
-    break;
-    
-    case 1:
-    addr = COUNT_PULSES_STORE_ADDRESS2;
-    break;
-    
-    case 2:
-    addr = COUNT_PULSES_STORE_ADDRESS3;
-    break;
-  }
-
     uint8_t* writePtr = (uint8_t*)&val;
-    eeprom->write(addr,writePtr,sizeof(uint16_t));
+    eeprom->write(address,writePtr,sizeof(uint32_t));  
 }
-*/
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-

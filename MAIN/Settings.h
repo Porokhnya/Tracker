@@ -84,7 +84,12 @@ class SettingsClass
     
   private:
 
-      uint32_t loggingStartTimer;
+      uint32_t read32(uint16_t address);
+      void write32(uint16_t address, uint32_t val);
+
+      void saveLoggingTimer();
+      void accumulateLoggingDuration();
+      
 
       PowerType powerType;
       static void checkPower();
