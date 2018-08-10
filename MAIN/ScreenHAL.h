@@ -163,6 +163,7 @@ public:
   void  drawRoundRect(int x1, int y1, int x2, int y2);
   void  fillRect(int x1, int y1, int x2, int y2);
   void  fillRoundRect(int x1, int y1, int x2, int y2);
+  void clrRoundRect(int x1, int y1, int x2, int y2);
   uint16_t getFontWidth(FONT_TYPE* font);
   uint16_t getFontHeight(FONT_TYPE* font);
 

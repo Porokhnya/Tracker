@@ -453,6 +453,17 @@ void  HalDC::fillRoundRect(int x1, int y1, int x2, int y2)
   #endif    
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void  HalDC::clrRoundRect(int x1, int y1, int x2, int y2)
+{
+  #if DISPLAY_USED == DISPLAY_ILI9341
+    //halDCDescriptor->fillRoundRect(x1,y1,x2,y2);
+  #elif DISPLAY_USED == DISPLAY_NOKIA5110
+    halDCDescriptor->clrRoundRect(x1,y1,x2,y2);
+  #else
+    #error "Unsupported display!"
+  #endif    
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void HalDC::updateDisplay()
 {
   #if DISPLAY_USED == DISPLAY_NOKIA5110

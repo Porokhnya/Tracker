@@ -31,6 +31,11 @@ void MainScreen::doSetup(HalDC* hal)
 {
   // первоначальная настройка экрана
   lastLogActiveFlag = Settings.isLoggingEnabled();
+  lastDoorOpen = Settings.isDoorOpen();
+
+  doorStateVisible = true;
+  doorStateBlinkTimer = 0;
+  blinkDoorState = false;
   
   #if DISPLAY_USED == DISPLAY_ILI9341
   
@@ -51,10 +56,11 @@ void MainScreen::doUpdate(HalDC* hal)
 {
   if(!isActive())
     return;
+
       
 	// обновление экрана
   static uint32_t tempUpdateTimer = 0;
-  bool wantDrawTemp = false, wantDrawADC = false, wantDrawTime = false;
+  bool wantDrawTemp = false, wantDrawADC = false, wantDrawTime = false, wantDrawDoorState = false;
     
   if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
@@ -84,6 +90,13 @@ void MainScreen::doUpdate(HalDC* hal)
     wantDrawTime = true;
   }
 
+  bool curDoorOpen = Settings.isDoorOpen();
+  if(lastDoorOpen != curDoorOpen)
+  {
+    lastDoorOpen = curDoorOpen;
+    wantDrawDoorState = true;
+  }
+
   bool curLogActive = Settings.isLoggingEnabled();
   bool wantDrawLogState = false;
   if(curLogActive != lastLogActiveFlag)
@@ -92,7 +105,40 @@ void MainScreen::doUpdate(HalDC* hal)
     wantDrawLogState = true;
   }
 
-  if(wantDrawTemp || wantDrawADC || wantDrawTime || wantDrawLogState)
+  bool lastBlinkState = blinkDoorState;
+
+  if(lastLogActiveFlag && lastDoorOpen) // открыто при включенном логгировании - надо мигать
+  {
+    if(!blinkDoorState)
+    {
+      blinkDoorState = true;
+      doorStateBlinkTimer = millis();
+      wantDrawDoorState = true;
+      doorStateVisible = true;
+    }
+  }
+  else
+    blinkDoorState = false;
+
+
+  if(blinkDoorState)
+  {
+    if(millis() - doorStateBlinkTimer > 750)
+    {
+      doorStateBlinkTimer = millis();
+      doorStateVisible = !doorStateVisible;
+      wantDrawDoorState = true;
+    }
+  }
+
+  if(lastBlinkState != blinkDoorState)
+  {
+    doorStateVisible = true;
+    wantDrawDoorState = true;
+  }
+  
+
+  if(wantDrawTemp || wantDrawADC || wantDrawTime || wantDrawLogState || wantDrawDoorState)
   {
     hal->clearScreen();
     
@@ -102,6 +148,8 @@ void MainScreen::doUpdate(HalDC* hal)
     drawLogState(hal);
 
     drawLogDuration(hal);
+
+    drawDoorState(hal);
     
     hal->updateDisplay();
   }  
@@ -192,6 +240,56 @@ void MainScreen::drawLogState(HalDC* hal)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void MainScreen::drawDoorState(HalDC* hal)
+{
+  String toDraw = " ";
+  int addX = 0, addY = 0;
+  if(lastDoorOpen) // дверь открыта
+  {
+    if(Settings.isLoggingEnabled())
+    {
+      toDraw = char(0xac); // открыто при включенной записи
+    }
+    else
+    {
+      toDraw = char(0xac); // открыто (закрашенное знакоместо)
+    }
+  }
+  else
+  {
+    toDraw = 'X'; // закрыто (незакрашенный круг по центру)
+  }
+
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->setColor(SCREEN_TEXT_COLOR);
+
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  uint8_t fontWidth = hal->getFontWidth(SCREEN_SMALL_FONT);
+
+  uint16_t screenWidth = hal->getScreenWidth();
+  uint16_t screenHeight = hal->getScreenHeight();
+
+  uint16_t captionWidth = fontWidth*toDraw.length();
+  uint16_t drawX = screenWidth - captionWidth - 4;
+  uint16_t drawY = screenHeight - fontHeight*2 - 2*4;
+
+  if(!doorStateVisible)
+    toDraw = " ";
+
+  hal->print(toDraw.c_str(),drawX + addX, drawY + addY);
+    
+  if(lastDoorOpen)
+  {
+    // тут надо проверять - моргаем ли?
+    if(doorStateVisible)
+      hal->drawRoundRect(drawX - 2, drawY - 2, drawX + captionWidth + 2, drawY + fontHeight);  
+    else
+      hal->clrRoundRect(drawX - 2, drawY - 2, drawX + captionWidth + 2, drawY + fontHeight);  
+  }
+  else
+    hal->drawRoundRect(drawX - 2, drawY - 2, drawX + captionWidth + 2, drawY + fontHeight);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void MainScreen::drawTemperature(HalDC* hal)
 { 
   // отрисовка температуры/влажности
@@ -224,7 +322,7 @@ void MainScreen::drawTemperature(HalDC* hal)
 
   uint16_t stringWidth = displayString.length()*fontWidth;
 
-  uint16_t drawX = (screenWidth - stringWidth)/2;
+  uint16_t drawX = 0;//(screenWidth - stringWidth)/2;
   uint16_t drawY = 0;
 
   hal->print(displayString.c_str(), drawX, drawY);
@@ -252,7 +350,7 @@ void MainScreen::drawTemperature(HalDC* hal)
 
   drawY += fontHeight;
   stringWidth = displayString.length()*fontWidth;
-  drawX = (screenWidth - stringWidth - ( hasHumidity ? fontWidth : 0 ))/2;
+  drawX = 0;//(screenWidth - stringWidth - ( hasHumidity ? fontWidth : 0 ))/2;
   hal->print(displayString.c_str(), drawX, drawY);
 
   drawX += stringWidth;
@@ -318,6 +416,7 @@ void MainScreen::doDraw(HalDC* hal)
    drawTime(hal);
    drawLogState(hal);
    drawLogDuration(hal);
+   drawDoorState(hal);
 
    hal->updateDisplay();
 }

@@ -278,6 +278,11 @@ void SettingsClass::alarmFunction()
   Settings.bWantCheckAlarm = true;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool SettingsClass::isDoorOpen()
+{
+  return (doorState == DOOR_OPEN);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
 
@@ -292,17 +297,13 @@ void SettingsClass::begin()
   pinMode(LED, OUTPUT);              // Настрока светодиода индикации  
   digitalWrite(LED, LOW);
 
-  // смотрим, какое питание использовано - батарейное или USB?
-  /*
-   То есть при выполнении программы setup контролируем вывод PWR_On_In. Если на нем присутствует нулевой потенциал, 
-   это означает подключен внутренний источник (батарейки), при высоком уровне - питание осуществляется от порта USB.
-   */
+  // настраиваем концевик двери
+  pinMode(DOOR_ENDSTOP_PIN, INPUT);
+  
+  // читаем его состояние
+  doorState = digitalRead(DOOR_ENDSTOP_PIN);
+  
 
-  // проверяем тип питания
- // checkPower();  
-
- // Постоянно контролируем состояние сигнала на выводе 38 (BUTTON_POWER)
- //attachInterrupt(digitalPinToInterrupt(BUTTON_POWER), checkPower, CHANGE);
 
   // настраиваем "подхват питания"
   DBGLN(F("Setup power hook..."));
@@ -500,7 +501,53 @@ void SettingsClass::logDataToSD()
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::update()
-{  
+{ 
+  // проверяем состояние концевика двери
+  uint8_t currentDoorState = digitalRead(DOOR_ENDSTOP_PIN);
+  if(doorState != currentDoorState)
+  {
+    // состояние концевика двери изменилось
+      doorState = currentDoorState;
+
+     if(isLoggingEnabled())
+     {
+          // В состоянии включенной записи измерения температуры, при закрывании двери, записывается время закрытия.
+          // В состоянии включенной записи измерения температуры и открывании двери, записывается время открывания.
+          String action;
+      
+          if(isDoorOpen()) // сейчас дверь открыта, а была - закрыта, т.е. - было открывание
+          {
+            action = F("DOOR_OPENED");
+          }
+          else // сейчас зверь закрыта, а была - открыта, т.е. - было закрывание
+          {
+            action = F("DOOR_CLOSED");
+          }
+
+          // записываем событие в лог-файл
+          String dataLine;
+        
+          // в первом столбце - дата/время логгирования
+          DS3231Time tm = RealtimeClock.getTime();
+          String dateStr = RealtimeClock.getDateStr(tm);
+          dateStr += ' ';
+          dateStr  += RealtimeClock.getTimeStr(tm);
+        
+          dataLine = Logger.formatCSV(dateStr);
+          dataLine += COMMA_DELIMITER;
+        
+          // во втором столбце - действие с дверью
+          dataLine += Logger.formatCSV(action);
+          dataLine += COMMA_DELIMITER;   
+
+          dataLine += NEWLINE;
+          Logger.write((uint8_t*)dataLine.c_str(),dataLine.length());
+          
+     } // if(isLoggingEnabled())
+
+
+  }
+  
   if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
     sensorsUpdateTimer = millis();

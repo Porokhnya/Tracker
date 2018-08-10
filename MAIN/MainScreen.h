@@ -41,6 +41,12 @@ private:
     bool lastLogActiveFlag;
     void drawLogState(HalDC* hal);
     void drawLogDuration(HalDC* hal);
+
+   bool lastDoorOpen;
+   bool doorStateVisible;
+   uint32_t doorStateBlinkTimer;
+   bool blinkDoorState;
+   void drawDoorState(HalDC* hal);
   
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

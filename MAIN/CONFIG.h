@@ -75,6 +75,8 @@
 #define SENSORS_UPDATE_FREQUENCY 2000 // частота обновления показаний с датчиков для главного экрана, миллисекунд
 #define ANALOG_SENSOR_PIN A1 // номер аналогового пина для второго датчика
 #define LOGGING_INTERVAL_INDEX 0 // индекс интервала логгирования по умолчанию
+#define DOOR_ENDSTOP_PIN A2 // пин, на котором висит концевик двери
+#define DOOR_OPEN HIGH // уровень, когда дверь открыта
 
 #define LOGGING_INTERVALS_COUNT 6 // кол-во известных интервалов
 #define LOGGING_INTERVALS 5, 10, 20, 30, 40, 60 // допустимые интервалы настроек логгирования, минут (указываются через запятую, кол-вом LOGGING_INTERVALS_COUNT !!!)

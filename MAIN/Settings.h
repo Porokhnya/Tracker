@@ -85,9 +85,12 @@ class SettingsClass
     void setLoggingDuration(uint32_t val);
 
     String getUUID(const char* passedUUID);
+
+    bool isDoorOpen();
     
   private:
 
+      uint8_t doorState;
 
       Button powerButton;      
 
