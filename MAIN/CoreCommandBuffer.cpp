@@ -17,6 +17,8 @@ const char LS_COMMAND[] PROGMEM = "LS"; // отдать список файло�
 const char FILE_COMMAND[] PROGMEM = "FILE"; // отдать содержимое файла
 const char FILESIZE_COMMAND[] PROGMEM = "FILESIZE"; // отдать размер файла
 const char DELFILE_COMMAND[] PROGMEM = "DELFILE"; // удалить файл
+const char UUID_COMMAND[] PROGMEM = "UUID"; // получить уникальный идентификатор контроллера
+const char LOG_DURATION_COMMAND[] PROGMEM = "LOGTIME"; // установить общее время логгирования, в часах
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreCommandBuffer Commands(&Serial);
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -191,6 +193,21 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
           }
                     
         } // DATETIME
+         else
+        if(!strcmp_P(commandName, LOG_DURATION_COMMAND)) // LOGTIME
+        {
+          if(cParser.argsCount() > 1)
+          {
+            const char* paramPtr = cParser.getArg(1);
+            commandHandled = printBackSETResult(setLOGTIME(paramPtr),commandName,pStream);
+          }
+          else
+          {
+            // недостаточно параметров
+            commandHandled = printBackSETResult(false,commandName,pStream);
+          }
+                    
+        } // LOGTIME        
         else
         if(!strcmp_P(commandName, DELFILE_COMMAND))
         {
@@ -236,6 +253,12 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
           commandHandled = getFREERAM(commandName,pStream);
         } // FREERAM_COMMAND
         else
+        if(!strcmp_P(commandName, UUID_COMMAND))
+        {
+            commandHandled = getUUID(commandName,cParser,pStream);                    
+          
+        } // UUID_COMMAND        
+        else
         if(!strcmp_P(commandName, LS_COMMAND)) // LS
         {
             // запросили получить список файлов в папке, GET=LS|FolderName
@@ -268,6 +291,36 @@ void CommandHandlerClass::onUnknownCommand(const String& command, Stream* outStr
 {
     outStream->print(CORE_COMMAND_ANSWER_ERROR);
     outStream->println(F("UNKNOWN_COMMAND"));  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::getUUID(const char* commandPassed, const CommandParser& parser, Stream* pStream)
+{
+  if(parser.argsCount() < 2)
+    return false;  
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+
+  pStream->print(commandPassed);
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  
+  pStream->println(Settings.getUUID(parser.getArg(1)));
+
+  return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::setLOGTIME(const char* param)
+{
+  String s;
+  s = param;
+
+  uint32_t logtime = s.toInt();
+
+  logtime *= 60; // в минуты
+  logtime *= 60; // в секунды
+
+  Settings.setLoggingDuration(logtime);
+
+  return true;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 bool CommandHandlerClass::setDELFILE(CommandParser& parser, Stream* pStream)

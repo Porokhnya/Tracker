@@ -82,6 +82,9 @@ class SettingsClass
     void turnPowerOff(); // выключает питание контроллера
 
     uint32_t getLoggingDuration(); // возвращает длительность логгирования
+    void setLoggingDuration(uint32_t val);
+
+    String getUUID(const char* passedUUID);
     
   private:
 

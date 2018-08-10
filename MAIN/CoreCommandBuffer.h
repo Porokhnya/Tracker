@@ -55,6 +55,11 @@ class CommandHandlerClass
   bool getFILESIZE(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setDELFILE(CommandParser& parser, Stream* pStream);
   bool getLS(const char* commandPassed, const CommandParser& parser, Stream* pStream);
+
+
+  bool getUUID(const char* commandPassed, const CommandParser& parser, Stream* pStream);
+  bool setLOGTIME(const char* param);
+
   
   bool getPIN(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setPIN(CommandParser& parser, Stream* pStream);
