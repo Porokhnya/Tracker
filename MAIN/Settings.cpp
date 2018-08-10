@@ -241,6 +241,9 @@ void SettingsClass::begin()
   pinMode(BUTTON_POWER,INPUT);
   digitalWrite(BUTTON_POWER, HIGH);  // Подключаем к кнопке включения питания подтягиваючий резистор 
 
+  pinMode(LED, OUTPUT);              // Настрока светодиода индикации  
+  digitalWrite(LED, LOW);
+
   // смотрим, какое питание использовано - батарейное или USB?
   /*
    То есть при выполнении программы setup контролируем вывод PWR_On_In. Если на нем присутствует нулевой потенциал, 
@@ -248,7 +251,7 @@ void SettingsClass::begin()
    */
 
   // проверяем тип питания
-  checkPower();  
+ // checkPower();  
 
  // Постоянно контролируем состояние сигнала на выводе 38 (BUTTON_POWER)
  //attachInterrupt(digitalPinToInterrupt(BUTTON_POWER), checkPower, CHANGE);
@@ -258,8 +261,9 @@ void SettingsClass::begin()
   MCP.pinMode(PWR_On_Out,OUTPUT);
   // Для поддержания нулевого уровня на затворе ключа в первую очередь необходимо установить нулевой уровень на выводе 5 MCP23017 
   MCP.digitalWrite(PWR_On_Out, HIGH);
-  
- 
+
+  // проверяем тип питания
+  checkPower();
   eeprom = new AT24C64();
 
   // читаем значение интервала между логгированием на SD
@@ -330,7 +334,6 @@ void SettingsClass::begin()
   // выключаем питание ESP
   espPower(false);
 
-
   // подключаем Si7021
   si7021.begin();
 
@@ -359,11 +362,13 @@ void SettingsClass::checkPower()
   {
     Settings.powerType = batteryPower;
     DBGLN(F("BATTERY POWER !!!"));
+	digitalWrite(LED, LOW);            // Индикация определения источника питания
   }
  else
  {
    Settings.powerType = powerViaUSB;  
     DBGLN(F("POWER  VIA USB !!!"));
+	digitalWrite(LED, HIGH);            // Индикация определения источника питания
  }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
