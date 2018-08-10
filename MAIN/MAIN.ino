@@ -12,6 +12,9 @@
 #include "Settings.h"
 #include "CoreCommandBuffer.h"
 #include "Logger.h"
+
+
+
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint32_t screenIdleTimer = 0;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -35,7 +38,7 @@ void setup()
 {
   Serial.begin(SERIAL_SPEED);
   Serial1.begin(115200); // WiFi
-
+  delay(1000);
   // раскомментировать для отладочной информации !!!
  // while(!Serial);
 
@@ -55,7 +58,7 @@ void setup()
   // настраиваем железные кнопки
   Buttons.begin();
 
-  Serial2.begin(SERIAL_SPEED); // Возможно для принтера
+  Serial2.begin(SERIAL_SPEED); // Возможно для принтера 
 
   //Assign pins 3 & 4 SERCOM functionality
   pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
