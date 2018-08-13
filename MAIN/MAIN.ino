@@ -12,7 +12,7 @@
 #include "Settings.h"
 #include "CoreCommandBuffer.h"
 #include "Logger.h"
-
+#include "CoreTransport.h"
 
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -40,8 +40,8 @@ void SERCOM2_Handler() // Подключить Serial2
 void setup() 
 {
   Serial.begin(SERIAL_SPEED);
-  Serial1.begin(115200); // WiFi
   delay(1000);    // Подождать вывод в SerialUSB
+  
   // раскомментировать для отладочной информации !!!
   //while(!Serial);
 
@@ -67,7 +67,12 @@ void setup()
   pinPeripheral(3, PIO_SERCOM_ALT);    // Настройка Serial2
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
   delay(1000);
+
+  // начинаем работу ESP
+  ESP = new CoreESPTransport();
   
+  if(ESP)
+    ESP->begin();  
   
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);
 
@@ -132,6 +137,10 @@ void loop()
   Buttons.update();
   Screen.update();
 
+  // обновляем ESP
+  if(ESP)
+    ESP->update();
+
 
   // проверяем, какой экран активен. Если активен главный экран - сбрасываем таймер ожидания. Иначе - проверяем, не истекло ли время ничегонеделанья.
   AbstractHALScreen* activeScreen = Screen.getActiveScreen();
@@ -175,8 +184,13 @@ void yield()
     return;
     
  nestedYield = true;
+ 
    // обновляем кнопки   
    Buttons.update();
+
+  // вычитываем из потока для ESP
+   if(ESP)
+    ESP->readFromStream();
 
  nestedYield = false;
  

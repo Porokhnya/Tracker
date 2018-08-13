@@ -45,6 +45,18 @@ class SettingsClass
     void begin();
     void update();
 
+    // работа с ESP
+    bool shouldConnectToRouter() { return false; }
+    
+    String getStationID();
+    void setStationID(const String& val);
+    
+    String getStationPassword();
+    void setStationPassword(const String& val);
+    
+    String getRouterID() { return ""; }
+    String getRouterPassword() { return ""; }
+
     // возвращает значение температуры/влажности с датчика Si7021
     Si7021Data readSensor() { return si7021Data; }
 
@@ -94,8 +106,19 @@ class SettingsClass
 
       Button powerButton;      
 
+
+      uint8_t read8(uint16_t address, uint8_t defaultVal = 0);
+      void write8(uint16_t address, uint8_t val);
+
+      uint16_t read16(uint16_t address);
+      void write16(uint16_t address, uint16_t val);
+
       uint32_t read32(uint16_t address);
       void write32(uint16_t address, uint32_t val);
+
+      String readString(uint16_t address, byte maxlength);
+      void writeString(uint16_t address, const String& v, byte maxlength);
+
 
       void saveLoggingTimer();
       void accumulateLoggingDuration();

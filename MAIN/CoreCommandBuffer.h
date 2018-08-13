@@ -60,6 +60,9 @@ class CommandHandlerClass
   bool getUUID(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setLOGTIME(const char* param);
 
+  bool getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream);
+  bool setESPSTA(CommandParser& parser, Stream* pStream);
+
   
   bool getPIN(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setPIN(CommandParser& parser, Stream* pStream);

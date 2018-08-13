@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "DS3231.h"
 #include "Settings.h"
+#include "CoreTransport.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
 // список поддерживаемых команд
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -19,6 +20,7 @@ const char FILESIZE_COMMAND[] PROGMEM = "FILESIZE"; // отдать размер
 const char DELFILE_COMMAND[] PROGMEM = "DELFILE"; // удалить файл
 const char UUID_COMMAND[] PROGMEM = "UUID"; // получить уникальный идентификатор контроллера
 const char LOG_DURATION_COMMAND[] PROGMEM = "LOGTIME"; // установить общее время логгирования, в часах
+const char ESPSTA_COMMAND[] PROGMEM = "ESPSTA"; // получить/установить идентификатор станции и пароль для ESP
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreCommandBuffer Commands(&Serial);
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -175,8 +177,21 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
               // недостаточно параметров
               commandHandled = printBackSETResult(false,commandName,pStream);
             }
-        } // PIN_COMMAND        
-
+        } // PIN_COMMAND
+        else
+        if(!strcmp_P(commandName, ESPSTA_COMMAND))
+        {
+            // установить параметры станции SET=ESPSTA|id|password
+            if(cParser.argsCount() > 2)
+            {
+              commandHandled = setESPSTA(cParser, pStream);
+            }
+            else
+            {
+              // недостаточно параметров
+              commandHandled = printBackSETResult(false,commandName,pStream);
+            }
+        } // ESPSTA_COMMAND
         else
         if(!strcmp_P(commandName, DATETIME_COMMAND)) // DATETIME
         {
@@ -247,6 +262,12 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = getPIN(commandName,cParser,pStream);                    
           
         } // PIN_COMMAND
+        else
+        if(!strcmp_P(commandName, ESPSTA_COMMAND))
+        {
+            commandHandled = getESPSTA(commandName,cParser,pStream);                    
+          
+        } // ESPSTA_COMMAND
         else      
         if(!strcmp_P(commandName, FREERAM_COMMAND))
         {
@@ -469,6 +490,59 @@ bool CommandHandlerClass::setPIN(CommandParser& parser, Stream* pStream)
 int16_t CommandHandlerClass::getPinState(uint8_t pin)
 {
   return digitalRead(pin);
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream)
+{
+  if(parser.argsCount() < 1)
+    return false;  
+
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+
+  pStream->print(commandPassed);
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print( Settings.getStationID());
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->println(Settings.getStationPassword());   
+
+  return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::setESPSTA(CommandParser& parser, Stream* pStream)
+{
+
+  if(parser.argsCount() < 3)
+    return false;
+  
+  String stationId = parser.getArg(1);
+  String stationPass = parser.getArg(2);
+
+  Settings.setStationID(stationId);
+  Settings.setStationPassword(stationPass);
+
+  // тут убиваем ESP
+  CoreESPTransport* curEsp = ESP;
+  ESP = NULL;
+  delete curEsp;
+
+  // выключаем питание ESP
+  Settings.espPower(false);
+
+  curEsp = new CoreESPTransport();
+  curEsp->begin();
+  ESP = curEsp;
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+
+  pStream->print(parser.getArg(0));
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(stationId);
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->println(stationPass);
+
+
+  return true;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 extern "C" char *sbrk(int i);

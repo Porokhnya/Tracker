@@ -34,18 +34,26 @@ public:
         return *this;
     }; // Needed for memory management
 
-    // резервируем память для нужного кол-ва записей
-    void reserve(size_t count)
+    int indexOf(Data const &x)
     {
-      if(count <= d_capacity) // уже есть буфер нужного размера
-        return;
+      if(!d_size)
+        return -1;
 
-        d_capacity = count;
+      for(size_t i=0;i<d_size;i++)
+      {
+        if(d_data[i] == x)
+          return (int) i;
+      }
+      return -1;
+    }
 
-        Data *newdata = (Data *)malloc(d_capacity*sizeof(Data)); //allocates new memory
-        memcpy(newdata, d_data, d_size * sizeof(Data));  //copies all the old memory over
-        free(d_data);                                          //free old
-        d_data = newdata;        
+    void remove(size_t index, size_t count)
+    {
+      if (index >= d_size) { return; }
+      if (count > (d_size - index) ) { count = d_size - index; }
+      Data *writeTo = (d_data + index);
+      d_size = (d_size - count);
+      memmove(writeTo, d_data + index + count,d_size - index);
     }
 
     void push_back(Data const &x)
@@ -62,7 +70,7 @@ public:
           --d_size;
     };
 
-    void empty() // simple set size to 0 without memory free
+    void empty()
     {
       d_size = 0;
     }

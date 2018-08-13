@@ -71,6 +71,79 @@ SettingsClass::SettingsClass()
   alarmTimer = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String SettingsClass::getStationID()
+{
+  String result = readString(STATION_ID_ADDRESS,20);
+  if(!result.length())
+    result = DEFAULT_STATION_ID;
+
+  return result;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setStationID(const String& val)
+{
+  writeString(STATION_ID_ADDRESS,val,20);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String SettingsClass::getStationPassword()
+{
+  String result = readString(STATION_PASSWORD_ADDRESS,20);
+  if(!result.length())
+    result = DEFAULT_STATION_PASSWORD;
+
+  return result;  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setStationPassword(const String& val)
+{
+  writeString(STATION_PASSWORD_ADDRESS,val,20);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String SettingsClass::readString(uint16_t address, byte maxlength)
+{
+  String result;
+  for(byte i=0;i<maxlength;i++)
+  {
+    byte b = read8(address++,0);
+    if(b == 0)
+      break;
+
+    result += (char) b;
+  }
+
+  return result;  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::writeString(uint16_t address, const String& v, byte maxlength)
+{
+
+  for(byte i=0;i<maxlength;i++)
+  {
+    if(i >= v.length())
+      break;
+      
+    write8(address++,v[i]);
+  }
+
+  // пишем завершающий ноль
+  write8(address++,'\0');
+  
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::write8(uint16_t address, uint8_t val)
+{
+  eeprom->write(address,val); 
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+uint8_t SettingsClass::read8(uint16_t address, uint8_t defaultVal)
+{
+  uint8_t val = eeprom->read(address);
+  if(val == 0xFF)
+    val = defaultVal;
+
+ return val;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 String SettingsClass::getUUID(const char* passedUUID)
 {
     String savedUUID;
@@ -627,3 +700,22 @@ void SettingsClass::write32(uint16_t address, uint32_t val)
     eeprom->write(address,writePtr,sizeof(uint32_t));  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t SettingsClass::read16(uint16_t address)
+{
+  uint16_t result = 0;
+  uint8_t* writePtr = (uint8_t*)&result;
+  eeprom->read(address,writePtr,sizeof(uint16_t));
+
+  if(result == 0xFFFF)
+    result = 0;
+
+  return result;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::write16(uint16_t address, uint16_t val)
+{
+    uint8_t* writePtr = (uint8_t*)&val;
+    eeprom->write(address,writePtr,sizeof(uint16_t));  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
