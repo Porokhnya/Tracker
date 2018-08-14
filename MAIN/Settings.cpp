@@ -661,7 +661,8 @@ void SettingsClass::update()
      // DBGLN(F("POWER BUTTON CLICKED!!!"));
       
       // нажали кнопку отключения питания
-      if(getPowerType() == batteryPower)
+      // закомментировал проверку типа питания, чтобы отключалось по-любому
+      //if(getPowerType() == batteryPower)
       {
         static bool bFirst = true;
 
