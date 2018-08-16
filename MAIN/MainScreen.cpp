@@ -483,9 +483,10 @@ void MenuScreen1::onActivate()
 void MenuScreen1::doSetup(HalDC* hal)
 {
   // первоначальная настройка экрана  
+  /*
   for(uint8_t i=0;i<LOGGING_INTERVALS_COUNT;i++)
     intervalsRingBuffer.push_back(i);
-  
+  */
   
   #if DISPLAY_USED == DISPLAY_ILI9341
   
@@ -594,6 +595,7 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
       {
         if(!Settings.isLoggingEnabled()) // Запретить изменение интервала если лог включен
         {
+          /*
           Link<uint8_t>* leaf = intervalsRingBuffer.head();
           uint8_t idx = Settings.getLoggingIntervalIndex();
           
@@ -601,9 +603,18 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
             leaf = leaf->next;
   
           leaf = leaf->next;
-          
           Settings.setLoggingIntervalIndex(leaf->data);
           drawGUI(hal);
+          */
+          
+          int16_t interval = Settings.getLoggingInterval();
+          interval += LOGGING_INTERVAL_STEP;
+          if(interval > LOGGING_MAX_INTERVAL)
+            interval = LOGGING_MIN_INTERVAL;
+          
+          Settings.setLoggingInterval(interval);
+          drawGUI(hal);
+          
         }
       } 
       break;
@@ -612,6 +623,7 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
       {
         if(!Settings.isLoggingEnabled()) // Запретить изменение интервала если лог включен
         {
+          /*
           Link<uint8_t>* leaf = intervalsRingBuffer.tail();
           uint8_t idx = Settings.getLoggingIntervalIndex();
           
@@ -621,7 +633,15 @@ void MenuScreen1::onButtonPressed(HalDC* hal, int pressedButton)
           leaf = leaf->prev;
           
           Settings.setLoggingIntervalIndex(leaf->data);
-          drawGUI(hal); 
+          drawGUI(hal);
+          */
+          int16_t interval = Settings.getLoggingInterval();
+          interval -= LOGGING_INTERVAL_STEP;
+          if(interval < LOGGING_MIN_INTERVAL)
+            interval = LOGGING_MAX_INTERVAL;
+          
+          Settings.setLoggingInterval(interval);
+          drawGUI(hal);           
         }     
       }
 		  break;

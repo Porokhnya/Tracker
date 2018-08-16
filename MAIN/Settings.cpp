@@ -9,7 +9,7 @@
 SettingsClass Settings;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int SettingsClass::pressedKey = 0;
-uint8_t KNOWN_LOGGING_INTERVALS[ LOGGING_INTERVALS_COUNT ] = { LOGGING_INTERVALS };
+//uint8_t KNOWN_LOGGING_INTERVALS[ LOGGING_INTERVALS_COUNT ] = { LOGGING_INTERVALS };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::test_key()
 {
@@ -64,7 +64,7 @@ SettingsClass::SettingsClass()
 {
   eeprom = NULL;
   analogSensorValue = 0;
-  loggingInterval = LOGGING_INTERVAL_INDEX;
+  loggingInterval = 60;//LOGGING_INTERVAL_INDEX;
   bLoggingEnabled = true;
   bWantToLogFlag = false;
   bWantCheckAlarm = false;
@@ -201,7 +201,8 @@ uint32_t SettingsClass::getLoggingDuration()
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint8_t SettingsClass::getLoggingInterval()
-{  
+{
+  /*  
   if(loggingInterval >= LOGGING_INTERVALS_COUNT)
   {
     loggingInterval = 0;
@@ -209,8 +210,20 @@ uint8_t SettingsClass::getLoggingInterval()
   }
 
   return KNOWN_LOGGING_INTERVALS[loggingInterval];
+  */
+  return loggingInterval;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setLoggingInterval(uint8_t val)
+{
+  loggingInterval = val;
+
+  eeprom->write(LOGGING_INTERVAL_ADDRESS, val);
+
+  setupDS3231Alarm();  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
 void SettingsClass::setLoggingIntervalIndex(uint8_t val)
 {
   loggingInterval = val;
@@ -219,6 +232,7 @@ void SettingsClass::setLoggingIntervalIndex(uint8_t val)
 
   setupDS3231Alarm();
 }
+*/
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::setLoggerDayOfMonth(uint8_t lastDayOfMonth)
 {
@@ -570,6 +584,9 @@ void SettingsClass::logDataToSD()
 
   dataLine += NEWLINE;
   Logger.write((uint8_t*)dataLine.c_str(),dataLine.length());
+
+  // увеличиваем кол-во измерений всего
+  incTotalMeasures();
     
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -681,6 +698,18 @@ void SettingsClass::update()
        
     }  // if(powerButton.isClicked())
   
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint32_t SettingsClass::getTotalMeasures()
+{
+  return read32(TOTAL_MEASURES_ADDRESS);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::incTotalMeasures()
+{
+  uint32_t val = getTotalMeasures();
+  val++;
+  write32(TOTAL_MEASURES_ADDRESS,val);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint32_t SettingsClass::read32(uint16_t address)

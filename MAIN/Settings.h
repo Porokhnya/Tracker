@@ -70,13 +70,21 @@ class SettingsClass
     void espPower(bool bOn);
 
     // возвращает индекс интервала в массиве известных интервалов логгирования
-    uint8_t getLoggingIntervalIndex() { return loggingInterval; }
+  //  uint8_t getLoggingIntervalIndex() { return loggingInterval; }
 
     // устанавливает индекс активного интервала в массиве известных интервалов логгирования
-    void setLoggingIntervalIndex(uint8_t val);
+//    void setLoggingIntervalIndex(uint8_t val);
 
     // возвращает актуальное значение интервала логгирования, в минутах
     uint8_t getLoggingInterval();
+    void setLoggingInterval(uint8_t val);
+
+    // возвращает кол-во измерений всего
+    uint32_t getTotalMeasures();
+
+    // увеличивает кол-во измерений всего на единицу
+    void incTotalMeasures();
+    
 
     // включено ли логгирование?
     bool isLoggingEnabled() { return bLoggingEnabled; } 
@@ -159,5 +167,5 @@ class SettingsClass
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 extern SettingsClass Settings;
 extern Uart Serial2;
-extern uint8_t KNOWN_LOGGING_INTERVALS[LOGGING_INTERVALS_COUNT];
+//extern uint8_t KNOWN_LOGGING_INTERVALS[LOGGING_INTERVALS_COUNT];
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

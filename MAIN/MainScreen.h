@@ -76,21 +76,9 @@ private:
     MenuScreen1();
 
     void drawGUI(HalDC* hal);
-    LinkList<uint8_t> intervalsRingBuffer;
+    //LinkList<uint8_t> intervalsRingBuffer;
   
 };
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-typedef enum
-{
-  dmStartScreen,
-  dmExportToSerial,
-  dmExportToWiFi,
-  dmExportToPrinter,
-  dmExportDone
-  
-} SettingScreenDrawMode;
-*/
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
 {
@@ -202,20 +190,6 @@ private:
   void drawGUI(HalDC* hal);
   void drawStartScreen(HalDC* hal);
 
-  /*
-
-  bool ignoreKeys, exportActive;
-  SettingScreenDrawMode drawMode;
-  uint32_t dummyTimerNeedToRemoveLater;
-
-  
-  void drawExportToSerial(HalDC* hal);
-  void drawExportToWiFi(HalDC* hal);
-  void drawExportToPrinter(HalDC* hal);
-  void drawExportDone(HalDC* hal);
-
-  bool isExportDone();
-  */
 
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
