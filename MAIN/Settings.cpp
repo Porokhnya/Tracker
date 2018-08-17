@@ -674,6 +674,7 @@ void SettingsClass::update()
   } // if(bWantToLogFlag)
 
   // каждую 10 минут работы МК накапливаем значение общего времени логгирования
+  //TODO: Требуется переписать на разницу во времени, т.к. у нас будет спящий режим !!!
   static uint32_t lastMillis = 0;
   if(millis() - lastMillis > 600000)
   {
