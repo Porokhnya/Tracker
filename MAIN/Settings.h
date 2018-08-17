@@ -107,10 +107,14 @@ class SettingsClass
     String getUUID(const char* passedUUID);
 
     bool isDoorOpen();
+
     
   private:
 
-      uint8_t doorState;
+     uint8_t doorState;
+     static void doorStateChanged();
+     bool wantLogDoorState;
+     void logDoorState();
 
       Button powerButton;      
 

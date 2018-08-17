@@ -386,10 +386,11 @@ void SettingsClass::begin()
 
   // настраиваем концевик двери
   pinMode(DOOR_ENDSTOP_PIN, INPUT);
-  
   // читаем его состояние
   doorState = digitalRead(DOOR_ENDSTOP_PIN);
-  
+
+  // вешаем на прерывание
+  attachInterrupt(digitalPinToInterrupt(DOOR_ENDSTOP_PIN),doorStateChanged,CHANGE);
 
 
   // настраиваем "подхват питания"
@@ -590,15 +591,13 @@ void SettingsClass::logDataToSD()
     
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SettingsClass::update()
-{ 
-  // проверяем состояние концевика двери
-  uint8_t currentDoorState = digitalRead(DOOR_ENDSTOP_PIN);
-  if(doorState != currentDoorState)
-  {
-    // состояние концевика двери изменилось
-      doorState = currentDoorState;
-
+void SettingsClass::doorStateChanged()
+{
+  Settings.wantLogDoorState = true; 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::logDoorState()
+{
      if(isLoggingEnabled())
      {
           // В состоянии включенной записи измерения температуры, при закрывании двери, записывается время закрытия.
@@ -633,9 +632,20 @@ void SettingsClass::update()
           dataLine += NEWLINE;
           Logger.write((uint8_t*)dataLine.c_str(),dataLine.length());
           
-     } // if(isLoggingEnabled())
-
-
+     } // if(isLoggingEnabled())  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::update()
+{ 
+  // проверяем состояние концевика двери
+  //uint8_t currentDoorState = digitalRead(DOOR_ENDSTOP_PIN);
+  //if(doorState != currentDoorState)
+  if(wantLogDoorState) // была смена уровня на концевике двери, надо записать это дело в лог-файл
+  {
+    wantLogDoorState = false;
+    // состояние концевика двери изменилось
+    doorState = digitalRead(DOOR_ENDSTOP_PIN);//currentDoorState;
+    logDoorState();
   }
   
   if(millis() - sensorsUpdateTimer > SENSORS_UPDATE_FREQUENCY)
