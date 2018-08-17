@@ -68,11 +68,13 @@ void setup()
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
   delay(1000);
 
+  #ifdef ESP_SUPPORT_ENABLED
   // начинаем работу ESP
   ESP = new CoreESPTransport();
   
   if(ESP)
-    ESP->begin();  
+    ESP->begin();
+  #endif // ESP_SUPPORT_ENABLED
   
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);
 
@@ -137,10 +139,11 @@ void loop()
   Buttons.update();
   Screen.update();
 
+  #ifdef ESP_SUPPORT_ENABLED
   // обновляем ESP
   if(ESP)
     ESP->update();
-
+  #endif
 
   // проверяем, какой экран активен. Если активен главный экран - сбрасываем таймер ожидания. Иначе - проверяем, не истекло ли время ничегонеделанья.
   AbstractHALScreen* activeScreen = Screen.getActiveScreen();
@@ -188,9 +191,11 @@ void yield()
    // обновляем кнопки   
    Buttons.update();
 
+  #ifdef ESP_SUPPORT_ENABLED
   // вычитываем из потока для ESP
    if(ESP)
     ESP->readFromStream();
+  #endif    
 
  nestedYield = false;
  

@@ -71,6 +71,8 @@ SettingsClass::SettingsClass()
   alarmTimer = 0;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#ifdef ESP_SUPPORT_ENABLED
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 String SettingsClass::getStationID()
 {
   String result = readString(STATION_ID_ADDRESS,20);
@@ -98,6 +100,13 @@ void SettingsClass::setStationPassword(const String& val)
 {
   writeString(STATION_PASSWORD_ADDRESS,val,20);
 }
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::espPower(bool bOn)
+{
+  MCP.digitalWrite(PWR_ESP,bOn ? LOW : HIGH);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+#endif // ESP_SUPPORT_ENABLED
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 String SettingsClass::readString(uint16_t address, byte maxlength)
 {
@@ -273,11 +282,6 @@ uint8_t SettingsClass::getLoggerLogFileNumber()
 void SettingsClass::displayBacklight(bool bOn)
 {
   MCP.digitalWrite(LCD_led, bOn ? LOW : HIGH);
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void SettingsClass::espPower(bool bOn)
-{
-  MCP.digitalWrite(PWR_ESP,bOn ? LOW : HIGH);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::switchLogging(bool bOn)
@@ -465,11 +469,14 @@ void SettingsClass::begin()
   displayBacklight(true);
   
 
+  #ifdef ESP_SUPPORT_ENABLED
+  
   // настраиваем управление питанием ESP
   MCP.pinMode(PWR_ESP,OUTPUT);
-
   // выключаем питание ESP
   espPower(false);
+  
+  #endif // ESP_SUPPORT_ENABLED
 
   // подключаем Si7021
   si7021.begin();

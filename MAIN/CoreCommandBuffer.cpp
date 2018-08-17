@@ -20,7 +20,10 @@ const char FILESIZE_COMMAND[] PROGMEM = "FILESIZE"; // отдать размер
 const char DELFILE_COMMAND[] PROGMEM = "DELFILE"; // удалить файл
 const char UUID_COMMAND[] PROGMEM = "UUID"; // получить уникальный идентификатор контроллера
 const char LOG_DURATION_COMMAND[] PROGMEM = "LOGTIME"; // установить общее время логгирования, в часах
+
+#ifdef ESP_SUPPORT_ENABLED
 const char ESPSTA_COMMAND[] PROGMEM = "ESPSTA"; // получить/установить идентификатор станции и пароль для ESP
+#endif // ESP_SUPPORT_ENABLED
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreCommandBuffer Commands(&Serial);
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -178,6 +181,7 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
               commandHandled = printBackSETResult(false,commandName,pStream);
             }
         } // PIN_COMMAND
+        #ifdef ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, ESPSTA_COMMAND))
         {
@@ -192,6 +196,7 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
               commandHandled = printBackSETResult(false,commandName,pStream);
             }
         } // ESPSTA_COMMAND
+        #endif // ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, DATETIME_COMMAND)) // DATETIME
         {
@@ -262,12 +267,14 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = getPIN(commandName,cParser,pStream);                    
           
         } // PIN_COMMAND
+        #ifdef ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, ESPSTA_COMMAND))
         {
             commandHandled = getESPSTA(commandName,cParser,pStream);                    
           
         } // ESPSTA_COMMAND
+        #endif // ESP_SUPPORT_ENABLED
         else      
         if(!strcmp_P(commandName, FREERAM_COMMAND))
         {
@@ -492,6 +499,8 @@ int16_t CommandHandlerClass::getPinState(uint8_t pin)
   return digitalRead(pin);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+#ifdef ESP_SUPPORT_ENABLED
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool CommandHandlerClass::getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream)
 {
   if(parser.argsCount() < 1)
@@ -544,6 +553,8 @@ bool CommandHandlerClass::setESPSTA(CommandParser& parser, Stream* pStream)
 
   return true;
 }
+//--------------------------------------------------------------------------------------------------------------------------------------
+#endif // ESP_SUPPORT_ENABLED
 //--------------------------------------------------------------------------------------------------------------------------------------
 extern "C" char *sbrk(int i);
 //--------------------------------------------------------------------------------------------------------------------------------------

@@ -45,6 +45,7 @@ class SettingsClass
     void begin();
     void update();
 
+    #ifdef ESP_SUPPORT_ENABLED
     // работа с ESP
     bool shouldConnectToRouter() { return false; }
     
@@ -57,6 +58,11 @@ class SettingsClass
     String getRouterID() { return ""; }
     String getRouterPassword() { return ""; }
 
+    // управление питанием ESP
+    void espPower(bool bOn);
+    
+    #endif // ESP_SUPPORT_ENABLED
+
     // возвращает значение температуры/влажности с датчика Si7021
     Si7021Data readSensor() { return si7021Data; }
 
@@ -66,8 +72,6 @@ class SettingsClass
     // управление подсветкой экрана
     void displayBacklight(bool bOn);
 
-    // управление питанием ESP
-    void espPower(bool bOn);
 
     // возвращает индекс интервала в массиве известных интервалов логгирования
   //  uint8_t getLoggingIntervalIndex() { return loggingInterval; }

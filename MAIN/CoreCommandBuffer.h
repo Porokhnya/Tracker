@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "TinyVector.h"
+#include "CONFIG.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
 // класс для накопления команды из потока
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -60,8 +61,10 @@ class CommandHandlerClass
   bool getUUID(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setLOGTIME(const char* param);
 
+  #ifdef ESP_SUPPORT_ENABLED
   bool getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setESPSTA(CommandParser& parser, Stream* pStream);
+  #endif // ESP_SUPPORT_ENABLED
 
   
   bool getPIN(const char* commandPassed, const CommandParser& parser, Stream* pStream);
