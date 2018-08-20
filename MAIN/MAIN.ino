@@ -13,7 +13,7 @@
 #include "CoreCommandBuffer.h"
 #include "Logger.h"
 #include "CoreTransport.h"
-
+#include "DelayedEvents.h"
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint32_t screenIdleTimer = 0;
@@ -138,6 +138,7 @@ void loop()
   // обновляем кнопки
   Buttons.update();
   Screen.update();
+  CoreDelayedEvent.update();
 
   #ifdef ESP_SUPPORT_ENABLED
   // обновляем ESP
@@ -190,6 +191,8 @@ void yield()
  
    // обновляем кнопки   
    Buttons.update();
+
+   CoreDelayedEvent.update();
 
   #ifdef ESP_SUPPORT_ENABLED
   // вычитываем из потока для ESP
