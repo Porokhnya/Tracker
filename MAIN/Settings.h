@@ -71,6 +71,7 @@ class SettingsClass
 
     // управление подсветкой экрана
     void displayBacklight(bool bOn);
+    bool isBacklightOn() {return backlightFlag;}
 
 
     // возвращает индекс интервала в массиве известных интервалов логгирования
@@ -114,6 +115,8 @@ class SettingsClass
 
     
   private:
+
+     bool backlightFlag;
 
      uint8_t doorState;
      static void doorStateChanged();

@@ -37,14 +37,14 @@ void ButtonsList::update()
       {        
         if (pressedKey == BUTTON_7)
         {
-          // выключаем подсветку
-          Settings.displayBacklight(false);
+          // включаем/выключаем подсветку
+          Settings.displayBacklight(!Settings.isBacklightOn());
   
         }        
         else
         {
           // включаем подсветку
-          Settings.displayBacklight(true);
+          //Settings.displayBacklight(true);
 
           AbstractHALScreen* screen = Screen.getActiveScreen();
           if(screen)

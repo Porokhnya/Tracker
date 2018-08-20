@@ -69,6 +69,7 @@ SettingsClass::SettingsClass()
   bWantToLogFlag = false;
   bWantCheckAlarm = false;
   alarmTimer = 0;
+  backlightFlag = true;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #ifdef ESP_SUPPORT_ENABLED
@@ -282,6 +283,7 @@ uint8_t SettingsClass::getLoggerLogFileNumber()
 void SettingsClass::displayBacklight(bool bOn)
 {
   MCP.digitalWrite(LCD_led, bOn ? LOW : HIGH);
+  backlightFlag = bOn;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::switchLogging(bool bOn)
