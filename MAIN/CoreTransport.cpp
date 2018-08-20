@@ -285,13 +285,43 @@ CoreTransportClient* CoreTransport::getClient(uint8_t socket)
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreESPTransport* ESP = NULL;
 //--------------------------------------------------------------------------------------------------------------------------------------
+uint16_t CoreESPTransport::refsCount = 0;
+//--------------------------------------------------------------------------------------------------------------------------------------
 CoreESPTransport::CoreESPTransport() : CoreTransport(ESP_MAX_CLIENTS)
 {
   recursionGuard = 0;
   flags.waitCipstartConnect = false;
   cipstartConnectClient = NULL;
   workStream = NULL;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+CoreESPTransport* CoreESPTransport::ActiveInstance()
+{
+  return ESP;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+CoreESPTransport* CoreESPTransport::Create()
+{
+  if(!ESP)
+  {
+    // нет ни одного экземпляра транспорта, создаём и запускаем в работу
+    ESP = new CoreESPTransport();
+    ESP->begin();
+  }
+  ++refsCount;
 
+  return ESP;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+void CoreESPTransport::Destroy()
+{
+  if(--refsCount < 1) 
+  {
+    delete this;
+    ESP = NULL;
+    // выключаем питание ESP
+    Settings.espPower(false);
+  }
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 void CoreESPTransport::readFromStream()

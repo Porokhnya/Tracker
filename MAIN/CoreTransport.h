@@ -281,8 +281,12 @@ typedef enum
 //--------------------------------------------------------------------------------------------------------------------------------
 class CoreESPTransport : public CoreTransport
 {
-  public:
     CoreESPTransport();
+  public:
+
+    static CoreESPTransport* ActiveInstance(); // возвращает ссылку на активный транспорт, БЕЗ изменения счётчика ссылок. Возвращается NULL, если транспорт никем не создан
+    static CoreESPTransport* Create(); // создаёт экземпляр транспорта, увеличивая счётчик ссылок.
+    void Destroy(); // освобождает транспорт, уменьшая счётчик ссылок. Если на транспорт никто не ссылается - он удаляется из памяти
 
     virtual void update(); // обновляем состояние транспорта
     virtual void begin(); // начинаем работу
@@ -309,6 +313,7 @@ class CoreESPTransport : public CoreTransport
 
   private:
 
+      static uint16_t refsCount;
 
       // буфер для приёма команд от ESP
       TransportReceiveBuffer receiveBuffer;
@@ -355,7 +360,5 @@ class CoreESPTransport : public CoreTransport
       void initClients();
     
 };
-//--------------------------------------------------------------------------------------------------------------------------------
-extern CoreESPTransport* ESP;
 //--------------------------------------------------------------------------------------------------------------------------------
 #endif // ESP_SUPPORT_ENABLED

@@ -530,17 +530,7 @@ bool CommandHandlerClass::setESPSTA(CommandParser& parser, Stream* pStream)
   Settings.setStationID(stationId);
   Settings.setStationPassword(stationPass);
 
-  // тут убиваем ESP
-  CoreESPTransport* curEsp = ESP;
-  ESP = NULL;
-  delete curEsp;
-
-  // выключаем питание ESP
-  Settings.espPower(false);
-
-  curEsp = new CoreESPTransport();
-  curEsp->begin();
-  ESP = curEsp;
+  //TODO: ТУТ НУЖЕН ПЕРЕЗАПУСК ESP !!!
 
   pStream->print(CORE_COMMAND_ANSWER_OK);
 

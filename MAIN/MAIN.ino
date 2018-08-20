@@ -67,15 +67,6 @@ void setup()
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
   delay(1000);
 
-/*
-  #ifdef ESP_SUPPORT_ENABLED
-  // начинаем работу ESP
-  ESP = new CoreESPTransport();
-  
-  if(ESP)
-    ESP->begin();
-  #endif // ESP_SUPPORT_ENABLED
-*/  
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);
 
   DBGLN(F("INIT SD..."));
@@ -141,8 +132,9 @@ void loop()
 
   #ifdef ESP_SUPPORT_ENABLED
   // обновляем ESP
-  if(ESP)
-    ESP->update();
+  CoreESPTransport* esp = CoreESPTransport::ActiveInstance();
+  if(esp)
+    esp->update();
   #endif
 
   // проверяем, какой экран активен. Если активен главный экран - сбрасываем таймер ожидания. Иначе - проверяем, не истекло ли время ничегонеделанья.
@@ -194,8 +186,9 @@ void yield()
 
   #ifdef ESP_SUPPORT_ENABLED
   // вычитываем из потока для ESP
-   if(ESP)
-    ESP->readFromStream();
+  CoreESPTransport* esp = CoreESPTransport::ActiveInstance();
+  if(esp)
+    esp->readFromStream();
   #endif    
 
  nestedYield = false;
