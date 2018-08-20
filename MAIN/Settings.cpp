@@ -4,7 +4,7 @@
 #include "Buttons.h"
 #include "DS3231.h"
 #include "Logger.h"
-#include "DelayedEvents.h"
+#include "ScreenHAL.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass Settings;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -702,6 +702,12 @@ void SettingsClass::update()
     if(powerButton.isRetention())
     {
       DBGLN(F("POWER KEY DETECTED, TURN POWER OFF!!!"));
+      Vector<const char*> lines;
+      lines.push_back("Устройство");
+      lines.push_back("готово");
+      lines.push_back("к отключению.");
+      MessageBox->show(lines,NULL);
+      
       Settings.turnPowerOff();
     }
     /*
