@@ -644,10 +644,12 @@ void SettingsClass::logDoorState()
      } // if(isLoggingEnabled())  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+/*
 void doPowerOff(void* param)
 {
    Settings.turnPowerOff();
 }
+*/
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::update()
 { 
@@ -697,6 +699,12 @@ void SettingsClass::update()
 
 
     powerButton.update();
+    if(powerButton.isRetention())
+    {
+      DBGLN(F("POWER KEY DETECTED, TURN POWER OFF!!!"));
+      Settings.turnPowerOff();
+    }
+    /*
     if(powerButton.isClicked())
     {
      // DBGLN(F("POWER BUTTON CLICKED!!!"));
@@ -721,6 +729,7 @@ void SettingsClass::update()
       }
        
     }  // if(powerButton.isClicked())
+      */
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
