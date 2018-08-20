@@ -68,6 +68,7 @@ void setup()
   pinPeripheral(4, PIO_SERCOM_ALT);    // Настройка Serial2  
   delay(1000);
 
+/*
   #ifdef ESP_SUPPORT_ENABLED
   // начинаем работу ESP
   ESP = new CoreESPTransport();
@@ -75,7 +76,7 @@ void setup()
   if(ESP)
     ESP->begin();
   #endif // ESP_SUPPORT_ENABLED
-  
+*/  
  // RealtimeClock.setTime(5,16,9,5,27,7,2018);
 
   DBGLN(F("INIT SD..."));
