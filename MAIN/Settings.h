@@ -47,7 +47,6 @@ class SettingsClass
 
     #ifdef ESP_SUPPORT_ENABLED
     // работа с ESP
-    bool shouldConnectToRouter() { return false; }
     
     String getStationID();
     void setStationID(const String& val);
@@ -55,8 +54,13 @@ class SettingsClass
     String getStationPassword();
     void setStationPassword(const String& val);
     
-    String getRouterID() { return ""; }
-    String getRouterPassword() { return ""; }
+    String getRouterID();
+    void setRouterID(const String& val);
+
+    String getRouterPassword();
+    void setRouterPassword(const String& val);
+
+    bool shouldConnectToRouter();
 
     // управление питанием ESP
     void espPower(bool bOn);

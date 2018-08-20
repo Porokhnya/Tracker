@@ -23,6 +23,7 @@ const char LOG_DURATION_COMMAND[] PROGMEM = "LOGTIME"; // установить �
 
 #ifdef ESP_SUPPORT_ENABLED
 const char ESPSTA_COMMAND[] PROGMEM = "ESPSTA"; // получить/установить идентификатор станции и пароль для ESP
+const char ESPROUTER_COMMAND[] PROGMEM = "ESPROUTER"; // получить/установить идентификатор и пароль роутера, к которому коннектится ESP
 #endif // ESP_SUPPORT_ENABLED
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreCommandBuffer Commands(&Serial);
@@ -196,6 +197,20 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
               commandHandled = printBackSETResult(false,commandName,pStream);
             }
         } // ESPSTA_COMMAND
+        else
+        if(!strcmp_P(commandName, ESPROUTER_COMMAND))
+        {
+            // установить параметры станции SET=ESPROUTER|id|password
+            if(cParser.argsCount() > 2)
+            {
+              commandHandled = setESPROUTER(cParser, pStream);
+            }
+            else
+            {
+              // недостаточно параметров
+              commandHandled = printBackSETResult(false,commandName,pStream);
+            }
+        } // ESPROUTER_COMMAND
         #endif // ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, DATETIME_COMMAND)) // DATETIME
@@ -274,6 +289,12 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = getESPSTA(commandName,cParser,pStream);                    
           
         } // ESPSTA_COMMAND
+        else
+        if(!strcmp_P(commandName, ESPROUTER_COMMAND))
+        {
+            commandHandled = getESPROUTER(commandName,cParser,pStream);                    
+          
+        } // ESPROUTER_COMMAND
         #endif // ESP_SUPPORT_ENABLED
         else      
         if(!strcmp_P(commandName, FREERAM_COMMAND))
@@ -530,7 +551,7 @@ bool CommandHandlerClass::setESPSTA(CommandParser& parser, Stream* pStream)
   Settings.setStationID(stationId);
   Settings.setStationPassword(stationPass);
 
-  //TODO: ТУТ НУЖЕН ПЕРЕЗАПУСК ESP !!!
+  //TODO: ТУТ, ВОЗМОЖНО, НУЖЕН ПЕРЕЗАПУСК ESP !!!
 
   pStream->print(CORE_COMMAND_ANSWER_OK);
 
@@ -539,6 +560,49 @@ bool CommandHandlerClass::setESPSTA(CommandParser& parser, Stream* pStream)
   pStream->print(stationId);
   pStream->print(CORE_COMMAND_PARAM_DELIMITER);
   pStream->println(stationPass);
+
+
+  return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::getESPROUTER(const char* commandPassed, const CommandParser& parser, Stream* pStream)
+{
+  if(parser.argsCount() < 1)
+    return false;  
+
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+
+  pStream->print(commandPassed);
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print( Settings.getRouterID());
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->println(Settings.getRouterPassword());   
+
+  return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::setESPROUTER(CommandParser& parser, Stream* pStream)
+{
+
+  if(parser.argsCount() < 3)
+    return false;
+  
+  String routerId = parser.getArg(1);
+  String routerPass = parser.getArg(2);
+
+  Settings.setRouterID(routerId);
+  Settings.setRouterPassword(routerPass);
+
+  //TODO: ТУТ, ВОЗМОЖНО, НУЖЕН ПЕРЕЗАПУСК ESP !!!
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+
+  pStream->print(parser.getArg(0));
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(routerId);
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->println(routerPass);
 
 
   return true;

@@ -102,6 +102,39 @@ void SettingsClass::setStationPassword(const String& val)
   writeString(STATION_PASSWORD_ADDRESS,val,20);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String SettingsClass::getRouterID()
+{
+  String result = readString(ROUTER_ID_ADDRESS,20);
+  if(!result.length())
+    result = DEFAULT_ROUTER_ID;
+
+  return result;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setRouterID(const String& val)
+{
+  writeString(ROUTER_ID_ADDRESS,val,20);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String SettingsClass::getRouterPassword()
+{
+  String result = readString(ROUTER_PASSWORD_ADDRESS,20);
+  if(!result.length())
+    result = DEFAULT_ROUTER_PASSWORD;
+
+  return result;  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setRouterPassword(const String& val)
+{
+  writeString(ROUTER_PASSWORD_ADDRESS,val,20);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool SettingsClass::shouldConnectToRouter()
+{
+  return getRouterID().length() && getRouterPassword().length();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::espPower(bool bOn)
 {
   MCP.digitalWrite(PWR_ESP,bOn ? LOW : HIGH);

@@ -64,6 +64,9 @@ class CommandHandlerClass
   #ifdef ESP_SUPPORT_ENABLED
   bool getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setESPSTA(CommandParser& parser, Stream* pStream);
+  
+  bool getESPROUTER(const char* commandPassed, const CommandParser& parser, Stream* pStream);
+  bool setESPROUTER(CommandParser& parser, Stream* pStream);
   #endif // ESP_SUPPORT_ENABLED
 
   
