@@ -69,6 +69,9 @@ class CommandHandlerClass
   bool setESPROUTER(CommandParser& parser, Stream* pStream);
   #endif // ESP_SUPPORT_ENABLED
 
+  bool getBORDERS(const char* commandPassed, const CommandParser& parser, Stream* pStream);
+  bool setBORDERS(CommandParser& parser, Stream* pStream);
+
   
   bool getPIN(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setPIN(CommandParser& parser, Stream* pStream);

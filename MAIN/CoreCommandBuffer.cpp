@@ -20,6 +20,7 @@ const char FILESIZE_COMMAND[] PROGMEM = "FILESIZE"; // отдать размер
 const char DELFILE_COMMAND[] PROGMEM = "DELFILE"; // удалить файл
 const char UUID_COMMAND[] PROGMEM = "UUID"; // получить уникальный идентификатор контроллера
 const char LOG_DURATION_COMMAND[] PROGMEM = "LOGTIME"; // установить общее время логгирования, в часах
+const char BORDERS_COMMAND[] PROGMEM = "BORDERS"; // установить значение порогов
 
 #ifdef ESP_SUPPORT_ENABLED
 const char ESPSTA_COMMAND[] PROGMEM = "ESPSTA"; // получить/установить идентификатор станции и пароль для ESP
@@ -242,7 +243,21 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = printBackSETResult(false,commandName,pStream);
           }
                     
-        } // LOGTIME        
+        } // LOGTIME
+        else
+        if(!strcmp_P(commandName, BORDERS_COMMAND))
+        {
+            // установить параметры порогов SET=BORDERS|Tmin|Tmax|Hmin|HMax|ADCmin|ADCmax
+            if(cParser.argsCount() > 6)
+            {
+              commandHandled = setBORDERS(cParser, pStream);
+            }
+            else
+            {
+              // недостаточно параметров
+              commandHandled = printBackSETResult(false,commandName,pStream);
+            }                    
+        } // BORDERS_COMMAND                   
         else
         if(!strcmp_P(commandName, DELFILE_COMMAND))
         {
@@ -307,6 +322,12 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = getUUID(commandName,cParser,pStream);                    
           
         } // UUID_COMMAND        
+        else
+        if(!strcmp_P(commandName, BORDERS_COMMAND))
+        {
+            commandHandled = getBORDERS(commandName,cParser,pStream);                    
+          
+        } // ESPROUTER_COMMAND
         else
         if(!strcmp_P(commandName, LS_COMMAND)) // LS
         {
@@ -520,6 +541,53 @@ int16_t CommandHandlerClass::getPinState(uint8_t pin)
   return digitalRead(pin);
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::getBORDERS(const char* commandPassed, const CommandParser& parser, Stream* pStream)
+{
+  if(parser.argsCount() < 1)
+    return false;  
+
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+
+  pStream->print(commandPassed);
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(Settings.getMinTempBorder());
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(Settings.getMaxTempBorder());   
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(Settings.getMinHumidityBorder());   
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(Settings.getMaxHumidityBorder());   
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->print(Settings.getMinADCBorder());   
+  pStream->print(CORE_COMMAND_PARAM_DELIMITER);
+  pStream->println(Settings.getMaxADCBorder());   
+
+  return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
+bool CommandHandlerClass::setBORDERS(CommandParser& parser, Stream* pStream)
+{
+
+  if(parser.argsCount() < 7)
+    return false;
+  
+  Settings.setMinTempBorder(atoi(parser.getArg(1)));
+  Settings.setMaxTempBorder(atoi(parser.getArg(2)));
+
+  Settings.setMinHumidityBorder(atoi(parser.getArg(3)));
+  Settings.setMaxHumidityBorder(atoi(parser.getArg(4)));
+
+  Settings.setMinADCBorder(atoi(parser.getArg(5)));
+  Settings.setMaxADCBorder(atoi(parser.getArg(6)));
+
+  pStream->print(CORE_COMMAND_ANSWER_OK);
+  pStream->println(parser.getArg(0));
+
+
+  return true;
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 #ifdef ESP_SUPPORT_ENABLED
 //--------------------------------------------------------------------------------------------------------------------------------------
 bool CommandHandlerClass::getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream)
@@ -532,7 +600,7 @@ bool CommandHandlerClass::getESPSTA(const char* commandPassed, const CommandPars
 
   pStream->print(commandPassed);
   pStream->print(CORE_COMMAND_PARAM_DELIMITER);
-  pStream->print( Settings.getStationID());
+  pStream->print(Settings.getStationID());
   pStream->print(CORE_COMMAND_PARAM_DELIMITER);
   pStream->println(Settings.getStationPassword());   
 
