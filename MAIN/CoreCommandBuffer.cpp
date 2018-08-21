@@ -247,7 +247,7 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
         else
         if(!strcmp_P(commandName, BORDERS_COMMAND))
         {
-            // установить параметры порогов SET=BORDERS|Tmin|Tmax|Hmin|HMax|ADCmin|ADCmax
+            // установить параметры порогов SET=BORDERS|Tmin|Tmax|Hmin|Hmax|ADCmin|ADCmax
             if(cParser.argsCount() > 6)
             {
               commandHandled = setBORDERS(cParser, pStream);
