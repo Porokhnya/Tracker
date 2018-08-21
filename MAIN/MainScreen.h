@@ -193,13 +193,13 @@ private:
 
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-class MenuScreen3 : public AbstractHALScreen
+class BordersScreen : public AbstractHALScreen
 {
 public:
 
 	static AbstractHALScreen* create()
 	{
-		return new MenuScreen3();
+		return new BordersScreen();
 	}
 
 	virtual void onActivate();
@@ -214,7 +214,51 @@ protected:
 	virtual void onButtonPressed(HalDC* hal, int pressedButton);
 
 private:
-	MenuScreen3();
+	BordersScreen();
+
+};
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef enum
+{
+  temperatureBorder,
+  humidityBorder,
+  adcBorder
+  
+} WhichBorder;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+class EditBorderScreen : public AbstractHALScreen
+{
+public:
+
+  static AbstractHALScreen* create(const char* screenName, WhichBorder b)
+  {
+    return new EditBorderScreen(screenName, b);
+  }
+
+  virtual void onActivate();
+  virtual void onDeactivate();
+
+
+protected:
+
+  virtual void doSetup(HalDC* hal);
+  virtual void doUpdate(HalDC* hal);
+  virtual void doDraw(HalDC* hal);
+  virtual void onButtonPressed(HalDC* hal, int pressedButton);
+
+private:
+  EditBorderScreen(const char* screenName, WhichBorder b);
+
+  WhichBorder whichBorder;
+  int16_t minVal, maxVal, currentMinVal, currentMaxVal;
+  uint8_t changeStep;
+  uint8_t editedVal;
+  const char* caption;
+
+  void saveValues();
+  void reloadValues();
+
+  void drawGUI(HalDC* hal);
 
 };
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

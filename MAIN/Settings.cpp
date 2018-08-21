@@ -245,15 +245,6 @@ uint32_t SettingsClass::getLoggingDuration()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint8_t SettingsClass::getLoggingInterval()
 {
-  /*  
-  if(loggingInterval >= LOGGING_INTERVALS_COUNT)
-  {
-    loggingInterval = 0;
-    setLoggingIntervalIndex(loggingInterval);
-  }
-
-  return KNOWN_LOGGING_INTERVALS[loggingInterval];
-  */
   return loggingInterval;
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -265,17 +256,6 @@ void SettingsClass::setLoggingInterval(uint8_t val)
 
   setupDS3231Alarm();  
 }
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-void SettingsClass::setLoggingIntervalIndex(uint8_t val)
-{
-  loggingInterval = val;
-
-  eeprom->write(LOGGING_INTERVAL_ADDRESS, val);
-
-  setupDS3231Alarm();
-}
-*/
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::setLoggerDayOfMonth(uint8_t lastDayOfMonth)
 {
@@ -352,7 +332,7 @@ void SettingsClass::accumulateLoggingDuration()
 
       uint32_t diff = ut - loggingStartedAt;
 
-      // сохраняем накомленное значение
+      // сохраняем накопленное значение
       uint32_t accumulatedVal = read32(LOGGING_DURATION_VALUE_ADDRESS);
       accumulatedVal += diff;
       write32(LOGGING_DURATION_VALUE_ADDRESS,accumulatedVal);
@@ -772,6 +752,66 @@ void SettingsClass::update()
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int8_t SettingsClass::getMinTempBorder()
+{
+  return read8(TEMP_MIN_BORDER_ADDRESS,TEMPERATURE_MIN_BORDER_DEFAULT_VAL);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setMinTempBorder(int8_t val)
+{
+  write8(TEMP_MIN_BORDER_ADDRESS,val);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+int8_t SettingsClass::getMaxTempBorder()
+{
+  return read8(TEMP_MAX_BORDER_ADDRESS,TEMPERATURE_MAX_BORDER_DEFAULT_VAL); 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setMaxTempBorder(int8_t val)
+{
+  write8(TEMP_MAX_BORDER_ADDRESS,val);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint8_t SettingsClass::getMinHumidityBorder()
+{
+  return read8(HUMIDITY_MIN_BORDER_ADDRESS,HUMIDITY_MIN_BORDER_DEFAULT_VAL);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setMinHumidityBorder(uint8_t val)
+{
+  write8(HUMIDITY_MIN_BORDER_ADDRESS,val); 
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint8_t SettingsClass::getMaxHumidityBorder()
+{
+  return read8(HUMIDITY_MAX_BORDER_ADDRESS,HUMIDITY_MAX_BORDER_DEFAULT_VAL);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setMaxHumidityBorder(uint8_t val)
+{
+  write8(HUMIDITY_MAX_BORDER_ADDRESS,val);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t SettingsClass::getMinADCBorder()
+{
+  return read16(ADC_MIN_BORDER_ADDRESS,ADC_MIN_BORDER_DEFAULT_VAL);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setMinADCBorder(uint16_t val)
+{
+  write16(ADC_MIN_BORDER_ADDRESS,val);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint16_t SettingsClass::getMaxADCBorder()
+{
+  return read16(ADC_MAX_BORDER_ADDRESS,ADC_MAX_BORDER_DEFAULT_VAL);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setMaxADCBorder(uint16_t val)
+{
+  write16(ADC_MAX_BORDER_ADDRESS,val);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint32_t SettingsClass::getTotalMeasures()
 {
   return read32(TOTAL_MEASURES_ADDRESS);
@@ -784,14 +824,14 @@ void SettingsClass::incTotalMeasures()
   write32(TOTAL_MEASURES_ADDRESS,val);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-uint32_t SettingsClass::read32(uint16_t address)
+uint32_t SettingsClass::read32(uint16_t address, uint32_t defaultVal)
 {
   uint32_t result = 0;
   uint8_t* writePtr = (uint8_t*)&result;
   eeprom->read(address,writePtr,sizeof(uint32_t));
 
   if(result == 0xFFFFFFFF)
-    result = 0;
+    result = defaultVal;
 
   return result;
 }
@@ -802,14 +842,14 @@ void SettingsClass::write32(uint16_t address, uint32_t val)
     eeprom->write(address,writePtr,sizeof(uint32_t));  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-uint16_t SettingsClass::read16(uint16_t address)
+uint16_t SettingsClass::read16(uint16_t address, uint16_t defaultVal)
 {
   uint16_t result = 0;
   uint8_t* writePtr = (uint8_t*)&result;
   eeprom->read(address,writePtr,sizeof(uint16_t));
 
   if(result == 0xFFFF)
-    result = 0;
+    result = defaultVal;
 
   return result;
 }

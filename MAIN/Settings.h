@@ -77,12 +77,22 @@ class SettingsClass
     void displayBacklight(bool bOn);
     bool isBacklightOn() {return backlightFlag;}
 
+    // пороги
+    int8_t getMinTempBorder();
+    void setMinTempBorder(int8_t val);
+    int8_t getMaxTempBorder();
+    void setMaxTempBorder(int8_t val);
 
-    // возвращает индекс интервала в массиве известных интервалов логгирования
-  //  uint8_t getLoggingIntervalIndex() { return loggingInterval; }
+    uint8_t getMinHumidityBorder();
+    void setMinHumidityBorder(uint8_t val);
+    uint8_t getMaxHumidityBorder();
+    void setMaxHumidityBorder(uint8_t val);
 
-    // устанавливает индекс активного интервала в массиве известных интервалов логгирования
-//    void setLoggingIntervalIndex(uint8_t val);
+    uint16_t getMinADCBorder();
+    void setMinADCBorder(uint16_t val);
+    uint16_t getMaxADCBorder();
+    void setMaxADCBorder(uint16_t val);
+
 
     // возвращает актуальное значение интервала логгирования, в минутах
     uint8_t getLoggingInterval();
@@ -133,10 +143,10 @@ class SettingsClass
       uint8_t read8(uint16_t address, uint8_t defaultVal = 0);
       void write8(uint16_t address, uint8_t val);
 
-      uint16_t read16(uint16_t address);
+      uint16_t read16(uint16_t address, uint16_t defaultVal = 0);
       void write16(uint16_t address, uint16_t val);
 
-      uint32_t read32(uint16_t address);
+      uint32_t read32(uint16_t address, uint32_t defaultVal = 0);
       void write32(uint16_t address, uint32_t val);
 
       String readString(uint16_t address, byte maxlength);

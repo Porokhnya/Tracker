@@ -88,11 +88,11 @@ void setup()
   Screen.addScreen(MenuScreen2::create());
   DBGLN(F("Menu screen #2 added."));
 
-   DBGLN(F("Add menu screen #3..."));
-  Screen.addScreen(MenuScreen3::create());
+  DBGLN(F("Add menu screen #3..."));
+  Screen.addScreen(BordersScreen::create());
   DBGLN(F("Menu screen #3 added."));
 
-   DBGLN(F("Add menu screen #4..."));
+  DBGLN(F("Add menu screen #4..."));
   Screen.addScreen(MenuScreen4::create());
   DBGLN(F("Menu screen #4 added."));
 

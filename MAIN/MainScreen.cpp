@@ -448,7 +448,7 @@ void MainScreen::onButtonPressed(HalDC* hal, int pressedButton)
   		break;
       
   	  case BUTTON_3: // по нажатию кнопки 3 переключаемся на первый экран настроек
-  		  hal->switchToScreen("MenuScreen3");
+  		  hal->switchToScreen("BordersScreen");
   		break;
       
   	  case BUTTON_4: // по нажатию кнопки 4 переключаемся на первый экран настроек
@@ -1275,25 +1275,313 @@ void MenuScreen2::onButtonPressed(HalDC* hal, int pressedButton)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// MenuScreen3
+// EditBorderScreen
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-MenuScreen3::MenuScreen3() : AbstractHALScreen("MenuScreen3")
+EditBorderScreen::EditBorderScreen(const char* screenName, WhichBorder b) : AbstractHALScreen(screenName)
+{
+  whichBorder = b;
+  editedVal = 0;
+  changeStep = 1;
+  caption = "";
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::onDeactivate()
+{
+  // станем неактивными
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::onActivate()
+{
+  // мы активизируемся
+  reloadValues();
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::reloadValues()
+{
+  switch(whichBorder)
+  {
+    case temperatureBorder:
+    {
+      minVal = TEMPERATURE_MIN_BORDER;
+      maxVal = TEMPERATURE_MAX_BORDER;
+      changeStep = TEMPERATURE_BORDER_CHANGE_STEP;
+      currentMinVal = Settings.getMinTempBorder();
+      currentMaxVal = Settings.getMaxTempBorder();
+      caption = "Порог темп-ры";
+    }
+    break;
+
+    case humidityBorder:
+    {
+      minVal = HUMIDITY_MIN_BORDER;
+      maxVal = HUMIDITY_MAX_BORDER;
+      changeStep = HUMIDITY_BORDER_CHANGE_STEP;
+      currentMinVal = Settings.getMinHumidityBorder();
+      currentMaxVal = Settings.getMaxHumidityBorder();
+      caption = "Порог влажн.";
+    }
+    break;
+
+    case adcBorder:
+    {
+      minVal = ADC_MIN_BORDER;
+      maxVal = ADC_MAX_BORDER;
+      changeStep = ADC_BORDER_CHANGE_STEP;
+      currentMinVal = Settings.getMinADCBorder();
+      currentMaxVal = Settings.getMaxADCBorder();
+      caption = "Порог АЦП";
+    }
+    break;
+    
+  }  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::doSetup(HalDC* hal)
+{
+  // первоначальная настройка экрана
+  reloadValues();
+
+#if DISPLAY_USED == DISPLAY_ILI9341
+
+  screenButtons->addButton(5, 275, 190, 40, "ПРОБА");
+  // screenButtons->addButton(200, 275, 35, 40, "z", BUTTON_SYMBOL); // кнопка Часы 
+
+#elif DISPLAY_USED == DISPLAY_NOKIA5110
+
+  //TODO: Тут дополнительная инициализация Nokia 5110, если надо
+
+#else
+#error "Unsupported display!"  
+#endif
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::saveValues()
+{
+ switch(whichBorder)
+  {
+    case temperatureBorder:
+    {
+      Settings.setMinTempBorder(currentMinVal);
+      Settings.setMaxTempBorder(currentMaxVal);
+    }
+    break;
+
+    case humidityBorder:
+    {
+      Settings.setMinHumidityBorder(currentMinVal);
+      Settings.setMaxHumidityBorder(currentMaxVal);
+    }
+    break;
+
+    case adcBorder:
+    {
+      Settings.setMinADCBorder(currentMinVal);
+      Settings.setMaxADCBorder(currentMaxVal);
+    }
+    break;
+    
+  }  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::doUpdate(HalDC* hal)
+{
+  if (!isActive())
+    return;
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::drawGUI(HalDC* hal)
+{
+  hal->setFont(SCREEN_SMALL_FONT);
+  hal->setColor(SCREEN_TEXT_COLOR);
+  
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
+  uint8_t fontWidth = hal->getFontWidth(SCREEN_SMALL_FONT);
+  int screenWidth = hal->getScreenWidth();
+  int screenHeight = hal->getScreenHeight();
+  
+  int drawX = 0, drawY = 0, spacing = 2;
+
+  hal->print(caption, drawX, drawY);
+
+  drawY += fontHeight*2 + spacing*4;
+  drawX = spacing;
+
+  const int MAX_VAL_LEN = 5;
+
+  // считаем, что у нас на каждое значение - максимум 4 символа
+  int boxContentWidth = MAX_VAL_LEN*fontWidth;
+
+  // рисуем левый бокс с текущим значением
+  String toDraw;
+  
+  toDraw = currentMinVal;
+  while(toDraw.length() < MAX_VAL_LEN)
+    toDraw += ' ';
+
+  hal->print("min", drawX, drawY - fontHeight - spacing);
+  hal->print(toDraw.c_str(),drawX, drawY);
+
+  // если левый бокс - текущий, выделяем его
+  if(editedVal == 0)
+  {
+    hal->drawRoundRect(drawX - spacing, drawY - spacing, drawX + boxContentWidth + spacing, drawY + fontHeight);
+  }
+  else
+    hal->clrRoundRect(drawX - spacing, drawY - spacing, drawX + boxContentWidth + spacing, drawY + fontHeight);
+  
+
+  // теперь вычисляем позицию по X для правого значения
+  drawX = screenWidth - boxContentWidth - spacing*2;
+
+  // рисуем правый бокс
+  toDraw = currentMaxVal;
+  while(toDraw.length() < MAX_VAL_LEN)
+    toDraw += ' ';
+
+  hal->print("max", drawX, drawY - fontHeight - spacing);
+  hal->print(toDraw.c_str(),drawX, drawY);
+
+  // если правый бокс - текущий, то рисуем вокруг него рамку
+  if(editedVal == 1)
+  {
+    hal->drawRoundRect(drawX - spacing, drawY - spacing, drawX + boxContentWidth + spacing, drawY + fontHeight);
+  }
+  else
+    hal->clrRoundRect(drawX - spacing, drawY - spacing, drawX + boxContentWidth + spacing, drawY + fontHeight);
+
+
+  hal->print("3 - выбор",0, screenHeight - fontHeight);
+
+  hal->updateDisplay();
+   
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::doDraw(HalDC* hal)
+{
+  drawGUI(hal);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void EditBorderScreen::onButtonPressed(HalDC* hal, int pressedButton)
+{
+  // обрабатываем нажатия на кнопки
+
+#if DISPLAY_USED == DISPLAY_ILI9341
+
+  // Для TFT-экрана кнопки начинаются с нуля
+  /*
+  if (pressedButton == 0)
+  {
+  hal->switchToScreen("Main"); // переключаемся на экран настроек
+  }
+  */
+
+#elif DISPLAY_USED == DISPLAY_NOKIA5110
+
+  // Для Nokia кнопки идут с 1
+  switch (pressedButton)
+  {
+    case BUTTON_1: // текущее значение - вверх
+    {
+      if(editedVal == 0)
+      {
+        // редактируем минимальное значение
+        currentMinVal += changeStep;        
+      }
+      else
+      {
+        // редактируем максимальное значение
+        currentMaxVal += changeStep;        
+      }
+
+      if(currentMinVal > maxVal)
+        currentMinVal = minVal;
+      if(currentMinVal < minVal)
+        currentMinVal = maxVal;
+
+      if(currentMaxVal > maxVal)
+        currentMaxVal = minVal;
+      if(currentMaxVal < minVal)
+        currentMaxVal = maxVal;      
+
+      saveValues();
+
+      drawGUI(hal);
+    }
+    break;
+      
+    case BUTTON_2: // текущее значение - вниз
+    {
+      if(editedVal == 0)
+      {
+        // редактируем минимальное значение
+        currentMinVal -= changeStep;        
+      }
+      else
+      {
+        // редактируем максимальное значение
+        currentMaxVal -= changeStep;
+      }
+
+      if(currentMinVal > maxVal)
+        currentMinVal = minVal;
+      if(currentMinVal < minVal)
+        currentMinVal = maxVal;
+
+      if(currentMaxVal > maxVal)
+        currentMaxVal = minVal;
+      if(currentMaxVal < minVal)
+        currentMaxVal = maxVal;
+
+      saveValues();
+      
+      drawGUI(hal);
+    }
+    break;
+    
+    case BUTTON_3:
+    {
+      if(editedVal == 0)
+        editedVal = 1;
+      else
+        editedVal = 0;
+
+      drawGUI(hal);
+    }
+    break;
+    
+    case BUTTON_4:
+      hal->switchToScreen("BordersScreen");
+    break;
+  }
+
+#else
+#error "Unsupported display!"  
+#endif
+
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// BordersScreen
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+BordersScreen::BordersScreen() : AbstractHALScreen("BordersScreen")
 {
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen3::onDeactivate()
+void BordersScreen::onDeactivate()
 {
 	// станем неактивными
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen3::onActivate()
+void BordersScreen::onActivate()
 {
 	// мы активизируемся
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen3::doSetup(HalDC* hal)
+void BordersScreen::doSetup(HalDC* hal)
 {
 	// первоначальная настройка экрана
 
@@ -1305,6 +1593,9 @@ void MenuScreen3::doSetup(HalDC* hal)
 #elif DISPLAY_USED == DISPLAY_NOKIA5110
 
 	//TODO: Тут дополнительная инициализация Nokia 5110, если надо
+  Screen.addScreen(EditBorderScreen::create("TemperatureBorderScreen",temperatureBorder));
+  Screen.addScreen(EditBorderScreen::create("HumidityBorderScreen",humidityBorder));
+  Screen.addScreen(EditBorderScreen::create("ADCBorderScreen",adcBorder));
 
 #else
 #error "Unsupported display!"  
@@ -1312,25 +1603,41 @@ void MenuScreen3::doSetup(HalDC* hal)
 
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen3::doUpdate(HalDC* hal)
+void BordersScreen::doUpdate(HalDC* hal)
 {
 	if (!isActive())
 		return;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen3::doDraw(HalDC* hal)
+void BordersScreen::doDraw(HalDC* hal)
 {
 
 	hal->setFont(SCREEN_SMALL_FONT);
 	hal->setColor(SCREEN_TEXT_COLOR);
+  uint8_t fontHeight = hal->getFontHeight(SCREEN_SMALL_FONT);
 
-	hal->print("Экран #3", 0, 0);
+  int drawX = 0, drawY = 0;
+
+  hal->print("Пороги:", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 1 - Темп-тура", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 2 - Влажность", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 3 - АЦП", drawX, drawY);
+
+  drawY += fontHeight + 2;  
+  hal->print(" 4 - Выход", drawX, drawY);	
+
 
 	hal->updateDisplay();
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MenuScreen3::onButtonPressed(HalDC* hal, int pressedButton)
+void BordersScreen::onButtonPressed(HalDC* hal, int pressedButton)
 {
 	// обрабатываем нажатия на кнопки
 
@@ -1349,22 +1656,19 @@ void MenuScreen3::onButtonPressed(HalDC* hal, int pressedButton)
 	// Для Nokia кнопки идут с 1
 	switch (pressedButton)
 	{
-  	case BUTTON_1: // по нажатию кнопки 1 выбираем параметры старта записи вверх
-  			//hal->switchToScreen("Main");
+  	case BUTTON_1: 
+  			hal->switchToScreen("TemperatureBorderScreen");
   	break;
       
-  	case BUTTON_2: // по нажатию кнопки 2 выбираем параметры старта записи вниз
-  			//hal->switchToScreen("Main");
+  	case BUTTON_2: 
+        hal->switchToScreen("HumidityBorderScreen");
   	break;
     
-  	case BUTTON_3: // по нажатию кнопки 3 запускаем процесс, переходим на главный экран
-  
-  			// Здесь вводим процедуру старта записи на SD
-  
-  		hal->switchToScreen("Main");  // переключаемся на главный экран обратно после старта процедуры
+  	case BUTTON_3: 
+        hal->switchToScreen("ADCBorderScreen");
   	break;
     
-  	case BUTTON_4: // по нажатию кнопки 4 переключаемся на главный экран обратно без ввода команды (типа передумали)
+  	case BUTTON_4:
   		hal->switchToScreen("Main");
   	break;
 	}
