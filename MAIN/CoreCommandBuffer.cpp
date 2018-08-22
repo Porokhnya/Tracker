@@ -21,11 +21,8 @@ const char DELFILE_COMMAND[] PROGMEM = "DELFILE"; // удалить файл
 const char UUID_COMMAND[] PROGMEM = "UUID"; // получить уникальный идентификатор контроллера
 const char LOG_DURATION_COMMAND[] PROGMEM = "LOGTIME"; // установить общее время логгирования, в часах
 const char BORDERS_COMMAND[] PROGMEM = "BORDERS"; // установить значение порогов
-
-#ifdef ESP_SUPPORT_ENABLED
 const char ESPSTA_COMMAND[] PROGMEM = "ESPSTA"; // получить/установить идентификатор станции и пароль для ESP
 const char ESPROUTER_COMMAND[] PROGMEM = "ESPROUTER"; // получить/установить идентификатор и пароль роутера, к которому коннектится ESP
-#endif // ESP_SUPPORT_ENABLED
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreCommandBuffer Commands(&Serial);
 //--------------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +180,6 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
               commandHandled = printBackSETResult(false,commandName,pStream);
             }
         } // PIN_COMMAND
-        #ifdef ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, ESPSTA_COMMAND))
         {
@@ -212,7 +208,6 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
               commandHandled = printBackSETResult(false,commandName,pStream);
             }
         } // ESPROUTER_COMMAND
-        #endif // ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, DATETIME_COMMAND)) // DATETIME
         {
@@ -297,7 +292,6 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = getPIN(commandName,cParser,pStream);                    
           
         } // PIN_COMMAND
-        #ifdef ESP_SUPPORT_ENABLED
         else
         if(!strcmp_P(commandName, ESPSTA_COMMAND))
         {
@@ -310,7 +304,6 @@ void CommandHandlerClass::processCommand(const String& command,Stream* pStream)
             commandHandled = getESPROUTER(commandName,cParser,pStream);                    
           
         } // ESPROUTER_COMMAND
-        #endif // ESP_SUPPORT_ENABLED
         else      
         if(!strcmp_P(commandName, FREERAM_COMMAND))
         {
@@ -588,8 +581,6 @@ bool CommandHandlerClass::setBORDERS(CommandParser& parser, Stream* pStream)
   return true;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-#ifdef ESP_SUPPORT_ENABLED
-//--------------------------------------------------------------------------------------------------------------------------------------
 bool CommandHandlerClass::getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream)
 {
   if(parser.argsCount() < 1)
@@ -675,8 +666,6 @@ bool CommandHandlerClass::setESPROUTER(CommandParser& parser, Stream* pStream)
 
   return true;
 }
-//--------------------------------------------------------------------------------------------------------------------------------------
-#endif // ESP_SUPPORT_ENABLED
 //--------------------------------------------------------------------------------------------------------------------------------------
 extern "C" char *sbrk(int i);
 //--------------------------------------------------------------------------------------------------------------------------------------

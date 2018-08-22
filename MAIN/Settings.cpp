@@ -6,6 +6,48 @@
 #include "Logger.h"
 #include "ScreenHAL.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// URI utils
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void hexchar(unsigned char c, unsigned char &hex1, unsigned char &hex2)
+{
+    hex1 = c / 16;
+    hex2 = c % 16;
+    hex1 += hex1 <= 9 ? '0' : 'a' - 10;
+    hex2 += hex2 <= 9 ? '0' : 'a' - 10;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+String urlencode(const String& s)
+{
+    const char *str = s.c_str();
+    String result;
+    for (size_t i = 0, l = s.length(); i < l; i++)
+    {
+        char c = str[i];
+        if ((c >= '0' && c <= '9') ||
+            (c >= 'a' && c <= 'z') ||
+            (c >= 'A' && c <= 'Z') ||
+            c == '-' || c == '_' || c == '.' || c == '!' || c == '~' ||
+            c == '*' || c == '\'' || c == '(' || c == ')')
+        {
+            result += c;
+        }
+        else if (c == ' ')
+        {
+            result += '+';
+        }
+        else
+        {
+            result += '%';
+            unsigned char d1, d2;
+            hexchar(c, d1, d2);
+            result += char(d1);
+            result += char(d2);
+        }
+    }
+
+    return result;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 SettingsClass Settings;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int SettingsClass::pressedKey = 0;
@@ -64,15 +106,18 @@ SettingsClass::SettingsClass()
 {
   eeprom = NULL;
   analogSensorValue = 0;
-  loggingInterval = 60;//LOGGING_INTERVAL_INDEX;
+  loggingInterval = 60;
   bLoggingEnabled = true;
   bWantToLogFlag = false;
   bWantCheckAlarm = false;
   alarmTimer = 0;
   backlightFlag = true;
+  startProcessWiFiFlag = false;
+  esp = NULL;
+  httpQuery = NULL;
+
+  wifiTimer = 0;
 }
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#ifdef ESP_SUPPORT_ENABLED
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 String SettingsClass::getStationID()
 {
@@ -139,8 +184,6 @@ void SettingsClass::espPower(bool bOn)
 {
   MCP.digitalWrite(PWR_ESP,bOn ? LOW : HIGH);
 }
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-#endif // ESP_SUPPORT_ENABLED
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 String SettingsClass::readString(uint16_t address, byte maxlength)
 {
@@ -389,8 +432,20 @@ bool SettingsClass::isDoorOpen()
   return (doorState == DOOR_OPEN);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint32_t SettingsClass::getWiFiSendInterval()
+{
+  return read32(WIFI_SEND_INTERVAL_ADDRESS,WIFI_SEND_INTERVAL);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::setWiFiSendInterval(uint32_t val)
+{
+  write32(WIFI_SEND_INTERVAL_ADDRESS,val);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
+
+ 
 
   // подключаем MCP на адрес 1
   MCP.begin(1);
@@ -421,6 +476,11 @@ void SettingsClass::begin()
   // проверяем тип питания
   checkPower();
   eeprom = new AT24C64();
+
+
+  // читаем текущий интервал отсыла показаний по Wi-Fi
+   wifiInterval = getWiFiSendInterval();
+
 
   // читаем значение интервала между логгированием на SD
   loggingInterval = eeprom->read(LOGGING_INTERVAL_ADDRESS);
@@ -483,15 +543,12 @@ void SettingsClass::begin()
   // включаем подсветку дисплея
   displayBacklight(true);
   
-
-  #ifdef ESP_SUPPORT_ENABLED
   
   // настраиваем управление питанием ESP
   MCP.pinMode(PWR_ESP,OUTPUT);
   // выключаем питание ESP
   espPower(false);
   
-  #endif // ESP_SUPPORT_ENABLED
 
   // подключаем Si7021
   si7021.begin();
@@ -538,7 +595,7 @@ void SettingsClass::updateDataFromSensors()
     float t = si7021.readTemperature()*100.0;
     int32_t iT = t;
     si7021Data.temperature = iT/100;
-    si7021Data.temperatureFract = iT%100;
+    si7021Data.temperatureFract = abs(iT%100);
 
     t = si7021.readHumidity()*100.0;
     iT = t;
@@ -548,8 +605,26 @@ void SettingsClass::updateDataFromSensors()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::checkIsAlarm()
 {
+
+  // вызывается каждую минуту
+  
   // сперва очищаем будильник по-любому
   RealtimeClock.clearAlarm2();
+
+  // проверяем, что у нас там с Wi-Fi
+  if(wifiState == wifiWaitInterval)
+  {
+    // ничего с Wi-Fi не делаем, ждём истечения интервала до следующего отсыла
+    wifiTimer++;
+    if(wifiTimer >= wifiInterval)
+    {
+      DBGLN(F("WANT TO SEND DATA TO WI-FI!"));
+      wifiTimer = 0;
+      wifiState = wifiWaitConnection;
+      startProcessWiFiFlag = true;
+      
+    }
+  }
 
   // теперь проверяем - не пришло ли время логгировать?
   alarmTimer++;
@@ -566,6 +641,47 @@ void SettingsClass::checkIsAlarm()
   }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool SettingsClass::isTemperatureInsideBorders()
+{
+  int16_t minTempBorder = getMinTempBorder();
+  minTempBorder *= 100;
+
+  int16_t maxTempBorder = getMaxTempBorder();
+  maxTempBorder *= 100;
+
+  int16_t toCompare = si7021Data.temperature;
+  toCompare *= 100;
+  if(toCompare < 0)
+    toCompare -= si7021Data.temperatureFract;
+  else
+    toCompare += si7021Data.temperatureFract;
+
+  return (toCompare >= minTempBorder && toCompare <= maxTempBorder);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool SettingsClass::isHumidityInsideBorders()
+{
+  uint16_t minHumidityBorder = getMinHumidityBorder();
+  minHumidityBorder *= 100;
+  
+  uint16_t maxHumidityBorder = getMaxHumidityBorder();
+  maxHumidityBorder *= 100;
+
+  uint16_t toCompareHum = si7021Data.humidity;
+  toCompareHum *= 100;
+  toCompareHum += si7021Data.humidityFract;
+
+  return (toCompareHum >= minHumidityBorder && toCompareHum <= maxHumidityBorder);
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+bool SettingsClass::isADCInsideBorders()
+{
+  uint16_t minADCBorder = getMinADCBorder();
+  uint16_t maxADCBorder = getMaxADCBorder();
+  return (analogSensorValue >= minADCBorder && analogSensorValue <= maxADCBorder);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::logDataToSD()
 {
   //ТУТ ЛОГГИРОВАНИЕ ИНФОРМАЦИИ С ДАТЧИКОВ НА SD
@@ -580,16 +696,18 @@ void SettingsClass::logDataToSD()
   dataLine = Logger.formatCSV(dateStr);
   dataLine += COMMA_DELIMITER;
 
-  uint16_t minADCBorder = getMinADCBorder();
-  uint16_t maxADCBorder = getMaxADCBorder();
 
   String okFlag;
 
-  if(analogSensorValue >= minADCBorder && analogSensorValue <= maxADCBorder)
-    okFlag = "GOOD";
+  if(isADCInsideBorders())
+  {
+    okFlag = "GOOD";    
+  }
   else
+  {
     okFlag = "BAD";
-
+  }
+  
   // во втором столбце - показания аналогового датчика
   dataLine += Logger.formatCSV(String(analogSensorValue));
   dataLine += COMMA_DELIMITER;
@@ -607,23 +725,15 @@ void SettingsClass::logDataToSD()
   dataLine += Logger.formatCSV(sTemp);
   dataLine += COMMA_DELIMITER;
 
-  int16_t minTempBorder = getMinTempBorder();
-  minTempBorder *= 100;
 
-  int16_t maxTempBorder = getMaxTempBorder();
-  minTempBorder *= 100;
-
-  int16_t toCompare = si7021Data.temperature;
-  toCompare *= 100;
-  if(toCompare < 0)
-    toCompare -= si7021Data.temperatureFract;
+  if(isTemperatureInsideBorders())
+  {
+    okFlag = "GOOD";    
+  }
   else
-    toCompare += si7021Data.temperatureFract;
-
-  if(toCompare >= minTempBorder && toCompare <= maxTempBorder)
-    okFlag = "GOOD";
-  else
-    okFlag = "BAD";  
+  {
+    okFlag = "BAD";
+  }
 
   dataLine += Logger.formatCSV(okFlag);
   dataLine += COMMA_DELIMITER;
@@ -637,21 +747,15 @@ void SettingsClass::logDataToSD()
   dataLine += Logger.formatCSV(sTemp);
   dataLine += COMMA_DELIMITER;
 
-  uint16_t minHumidityBorder = getMinHumidityBorder();
-  minHumidityBorder *= 100;
-  
-  uint16_t maxHumidityBorder = getMaxHumidityBorder();
-  maxHumidityBorder *= 100;
-
-  uint16_t toCompareHum = si7021Data.humidity;
-  toCompareHum *= 100;
-  toCompareHum += si7021Data.humidityFract;
-
-  if(toCompareHum >= minHumidityBorder && toCompareHum <= maxHumidityBorder)
-    okFlag = "GOOD";
+  if(isHumidityInsideBorders())
+  {
+    okFlag = "GOOD";    
+  }
   else
+  {
     okFlag = "BAD";
-
+  }
+  
   dataLine += Logger.formatCSV(okFlag);
   dataLine += COMMA_DELIMITER;      
   
@@ -711,23 +815,25 @@ void SettingsClass::logDoorState()
      } // if(isLoggingEnabled())  
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-/*
-void doPowerOff(void* param)
+void SettingsClass::switchToESPWaitMode()
 {
-   Settings.turnPowerOff();
+  wifiTimer = 0;
+  esp->unsubscribe(this);
+  esp->Destroy();
+  esp = NULL;
+  wifiState = wifiWaitInterval;
+  itemsInPacket = 0;       
+  
 }
-*/
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::update()
 { 
   // проверяем состояние концевика двери
-  //uint8_t currentDoorState = digitalRead(DOOR_ENDSTOP_PIN);
-  //if(doorState != currentDoorState)
   if(wantLogDoorState) // была смена уровня на концевике двери, надо записать это дело в лог-файл
   {
     wantLogDoorState = false;
     // состояние концевика двери изменилось
-    doorState = digitalRead(DOOR_ENDSTOP_PIN);//currentDoorState;
+    doorState = digitalRead(DOOR_ENDSTOP_PIN);
     logDoorState();
   }
   
@@ -777,32 +883,386 @@ void SettingsClass::update()
       
       Settings.turnPowerOff();
     }
-    /*
-    if(powerButton.isClicked())
+    
+
+  // проверяем, надо ли начать отсылать данные по Wi-Fi
+  if(startProcessWiFiFlag)
+  {
+    DBGLN(F("Start process Wi-Fi!"));
+    startProcessWiFiFlag = false;
+    if(!esp)
     {
-     // DBGLN(F("POWER BUTTON CLICKED!!!"));
+      DBGLN(F("Create ESP transport."));
+      esp = CoreESPTransport::Create();
+      // подписываемся на события клиентов
+      esp->subscribe(this);
+    }
+    wifiTimer = millis(); // запоминаем время начала работы с Wi-Fi
+  }
+
+  // тут смотрим - какое состояние работы с Wi-Fi сейчас?
+  switch(wifiState)
+  {
+    case   wifiWaitInterval:// ждём наступления интервала до отсыла
+    {
       
-      // нажали кнопку отключения питания
-      // закомментировал проверку типа питания, чтобы отключалось по-любому
-      //if(getPowerType() == batteryPower)
+    }
+    break; // wifiWaitInterval
+    
+    case wifiWaitConnection: // ждём установки соединения с устройством
+    {
+      if(esp->ready())
       {
-        static bool bFirst = true;
+        if(esp->isConnectedToRouter())
+        {
+            // ESP готов к отсылу данных
+            DBGLN(F("ESP ready for send data, get remote IP..."));
+    
+            // для начала - получаем IP
+            String staIP;
+            if(esp->getIP(remoteIP,staIP))
+            {
+              DBG(F("Remote IP is: "));
+              DBGLN(remoteIP);
 
-          if(!bFirst)
+              #ifdef WIFI_DEBUG_CONNECT_TO
+                DBG(F("Connection redefined to: "));
+                DBGLN(WIFI_DEBUG_CONNECT_TO);
+    
+                remoteIP = WIFI_DEBUG_CONNECT_TO;
+              #endif
+
+              // переключаемся на отсыл данных
+              wifiState = wifiSendData;
+
+              // собираем данные с датчиков и помещаем их в очередь
+              updateDataFromSensors();
+              pushSensorsDataToWiFiQueue();
+              
+            }          
+          else
           {
-            // питаемся от батареек, здесь можно выключать питание
-            // но это нужно делать только после ВТОРОГО нажатия кнопки, т.к. первым - контроллер включается!
+            // ничего не получилось, не можем продолжать
+            DBGLN(F("Unable to request remote IP, switch to wait mode!"));
+            switchToESPWaitMode();
+          } // else
+          
+        } // if(esp->isConnectedToRouter())
+        else
+        {
+          DBGLN(F("ESP not connected to endpoint, switch to wait mode..."));
+          switchToESPWaitMode();
+        }
 
-            DBGLN(F("POWER KEY DETECTED, TURN POWER OFF!!!"));
-        
-            // TODO: ТУТ СДЕЛАТЬ ТО, ЧТО НАДО. СЕЙЧАС РУБИТСЯ ПИТАНИЕ после настраиваемой задержки.
-            CoreDelayedEvent.raise(TURN_POWER_OFF_DELAY,doPowerOff,NULL);
-          }
-          bFirst = false;
+      } // ready()
+      else
+      {
+        // ESP не готов принимать данные, проверяем - не слишком ли долго мы ждём?
+        if(millis() - wifiTimer > WIFI_CONNECT_TIMEOUT)
+        {
+          // всё, не удалось соединиться - убиваем ESP, переходим на режим ожидания следующего интервала
+          DBGLN(F("Connect timeout, can't send data over Wi-Fi, switch to wait mode..."));
+          switchToESPWaitMode();
+        }
       }
-       
-    }  // if(powerButton.isClicked())
-      */
+    }
+    break; // wifiWaitConnection
+  
+    case wifiSendData: // отсылаем данные на устройство
+    {
+      // отсылаем следующий пакет
+      sendWiFiDataPacket();
+    }
+    break; // wifiSendData
+
+    case wifiWaitClientConnected:
+    {
+      if(millis() - wifiTimer > WIFI_CONNECT_TIMEOUT)
+      {
+          DBGLN(F("Client connect timeout, can't send data over Wi-Fi, switch to wait mode..."));
+          switchToESPWaitMode();        
+      }
+    }
+    break;
+    
+    case wifiWaitSendDataDone: // ждём окончания отсыла данных
+    {
+      if(millis() - wifiTimer > WIFI_WRITE_TIMEOUT)
+      {
+          DBGLN(F("Client write timeout, can't send data over Wi-Fi, switch to wait mode..."));
+          switchToESPWaitMode();        
+      }
+      
+    }
+    break; // wifiWaitSendDataDone
+    
+  } // switch
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::pushSensorsDataToWiFiQueue()
+{
+  DS3231Time tm = RealtimeClock.getTime();
+
+  // помещаем в очередь показания температуры
+  WiFiReportItem temperatureItem;
+  temperatureItem.dataType = dataSi7021Temperature;
+  temperatureItem.checkpoint = tm;
+  temperatureItem.insideBordersFlag = isTemperatureInsideBorders();
+  temperatureItem.formattedData = new String();
+  *(temperatureItem.formattedData) += si7021Data.temperature;
+  *(temperatureItem.formattedData) += DECIMAL_SEPARATOR;
+  if(si7021Data.temperatureFract < 10)
+    *(temperatureItem.formattedData) += '0';
+  *(temperatureItem.formattedData) += si7021Data.temperatureFract;
+
+  wifiData.push_back(temperatureItem);
+
+  // помещаем в очередь показания влажности
+  WiFiReportItem humidityItem;
+  humidityItem.dataType = dataSi7021Humidity;
+  humidityItem.checkpoint = tm;
+  humidityItem.insideBordersFlag = isHumidityInsideBorders();
+  humidityItem.formattedData = new String();
+  *(humidityItem.formattedData) += si7021Data.humidity;
+  *(humidityItem.formattedData) += DECIMAL_SEPARATOR;
+  if(si7021Data.humidityFract < 10)
+    *(humidityItem.formattedData) += '0';
+  *(humidityItem.formattedData) += si7021Data.humidityFract;
+
+  wifiData.push_back(humidityItem);
+
+  // помещаем в очередь показания АЦП
+  WiFiReportItem adcItem;
+  adcItem.dataType = dataADC;
+  adcItem.checkpoint = tm;
+  adcItem.insideBordersFlag = isADCInsideBorders();
+  adcItem.formattedData = new String();
+  *(adcItem.formattedData) += analogSensorValue;
+  
+  wifiData.push_back(adcItem);
+
+  // помещаем в очередь состояние двери
+  WiFiReportItem doorStateItem;
+  doorStateItem.dataType = dataDoorState;
+  doorStateItem.checkpoint = tm;
+  doorStateItem.insideBordersFlag = true;
+  doorStateItem.formattedData = new String();
+  *(doorStateItem.formattedData) = isDoorOpen() ? "OPEN" : "CLOSE";
+
+  wifiData.push_back(doorStateItem);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::sendWiFiDataPacket()
+{
+  //Тут пытаемся отослать данные
+  DBG(F("Make connection to "));
+  DBG(remoteIP);
+  DBGLN(F(" at port 80..."));
+
+  wifiTimer = millis();
+  wifiState = wifiWaitClientConnected;
+
+  // говорим, что клиент будет работать через ESP
+  espClient.accept(esp);
+  espClient.connect(remoteIP.c_str(),80);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::OnClientConnect(CoreTransportClient& client, bool connected, int16_t errorCode)
+{
+  DBGLN(F("OnClientConnect..."));
+  if(!connected)
+  {
+    // отсоединились или ошибка соединения!
+    if(errorCode != CT_ERROR_NONE)
+    {
+      // ошибка соединения
+      DBGLN(F("Connection error, switch to wait mode!"));
+      switchToESPWaitMode();
+    }
+    else
+    {
+      if(anyWriteError)
+      {
+        DBGLN(F("Write error detected, switch to wait mode!"));
+        switchToESPWaitMode();
+      } // anyWriteError
+      else
+      {
+          // всё нормально, отсоединились
+          DBGLN(F("Disconnected normally, check for next packet..."));
+    
+          // очищаем уже отосланные данные
+          removeSentData();
+          
+          if(wifiData.size())
+          {
+            DBGLN(F("Has some data left, transmit next packet!"));
+            wifiState = wifiSendData;
+          }
+          else
+          {
+            // уже нет данных
+            DBGLN(F("All data was sent, switch to wait mode..."));
+            switchToESPWaitMode();
+          }
+      } // else not anyWriteError
+    } // else
+  } // if(!connected)
+  else
+  {
+    DBGLN(F("Connected, make query and send it..."));
+    
+    makeHTTPQuery();
+    
+    // соединились, можно отсылать данные
+    // не забываем переключаться в режим ожидания окончания отсыла данных
+    wifiTimer = millis();
+    wifiState = wifiWaitSendDataDone;
+    anyWriteError = false;
+    espClient.write((uint8_t*) httpQuery->c_str(),httpQuery->length());
+
+    // чистим за собой
+    delete httpQuery;
+    httpQuery = NULL;
+  }
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::OnClientDataWritten(CoreTransportClient& client, int16_t errorCode)
+{
+  DBGLN(F("OnClientDataWritten..."));
+  if(errorCode == CT_ERROR_NONE)
+  {
+    // всё нормально записано
+    DBGLN(F("Data was written."));
+  }
+  else
+  {
+    // не удалось записать в клиент
+    DBGLN(F("Data write ERROR, disconnect and switch to wait mode!"));
+    anyWriteError = true;
+  }
+    espClient.disconnect();
+  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::OnClientDataAvailable(CoreTransportClient& client, uint8_t* data, size_t dataSize, bool isDone)
+{
+  DBGLN(F("OnClientDataAvailable..."));
+
+    #ifdef _DEBUG
+      Serial.write(data,dataSize);
+    #endif
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::removeSentData()
+{
+  size_t to = min(itemsInPacket,wifiData.size());
+
+  for(size_t i=0;i<to;i++)
+  {
+    delete wifiData[i].formattedData;
+  }
+
+  // почистили N записей, теперь переносим неочищенные записи в голову
+  WiFiReportList lst;
+  for(size_t i=to;i<wifiData.size();i++)
+  {
+    lst.push_back(wifiData[i]);
+  }
+
+  wifiData = lst;
+  // не забываем сказать, что мы в этой итерации ещё ничего не отсылали
+  itemsInPacket = 0;
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::makeHTTPQuery()
+{
+  DBGLN(F("Make HTTP-query..."));
+  
+  // создаём HTTP-запрос
+  delete httpQuery;
+  httpQuery = new String();
+  
+  *httpQuery = F("POST ");
+  *httpQuery += HTTP_HANDLER;
+  *httpQuery += F(" HTTP/1.1\r\nConnection: Keep-Alive\r\nContent-Type: application/x-www-form-urlencoded\r\n");
+
+  #ifdef HTTP_HOST
+    *httpQuery += F("Host: ");
+    *httpQuery += HTTP_HOST;
+    *httpQuery += F("\r\n");
+  #endif
+  
+  *httpQuery += F("Content-Length: ");
+
+  String httpData;
+
+  DS3231Time tm = RealtimeClock.getTime();
+  uint32_t ut = tm.unixtime();
+  String dateStr = RealtimeClock.getDateStr(tm);
+  dateStr += ' ';
+  dateStr += RealtimeClock.getTimeStr(tm);
+
+  // передаём общую метку времени для пакета
+  httpData += F("tm=");
+  httpData += urlencode(dateStr);
+
+  // затем - собираем N показаний из очереди.
+  // если показание вышло за границы и его метка времени не совпадает с текущей - выставляем отдельную метку времени.
+  // по окончании - не забываем, на каком индексе остановились
+  itemsInPacket = min(WIFI_MAX_RECORDS_IN_ONE_PACKET,wifiData.size());
+
+  // добавляем кол-во записей в пакете
+  httpData += F("&count=");
+  httpData += itemsInPacket;
+
+  // формируем данные пакета
+  for(size_t i=0;i<itemsInPacket;i++)
+  {
+    httpData += F("&type");
+    httpData += i;
+    httpData += '=';
+    httpData += (int) wifiData[i].dataType;
+
+    // проверяем, совпадают ли временные метки
+    if(ut != wifiData[i].checkpoint.unixtime())
+    {
+      // метка не совпадает, добавляем метку записи
+      httpData += F("&rtm");
+      httpData += i;
+      httpData += '=';
+
+      dateStr = RealtimeClock.getDateStr(wifiData[i].checkpoint);
+      dateStr += ' ';
+      dateStr += RealtimeClock.getTimeStr(wifiData[i].checkpoint);
+
+      httpData += urlencode(dateStr);
+    }
+
+      // добавляем флаг соответствия порогам
+      httpData += F("&state");
+      httpData += i;
+      httpData += '=';
+      httpData += wifiData[i].insideBordersFlag ? '1' : '0';
+
+      // добавляем заранее сформатированные данные
+      httpData += F("&data");
+      httpData += i;
+      httpData += '=';
+      httpData += urlencode(*(wifiData[i].formattedData));
+    
+  } // for
+
+  // подсчитываем длину данных и пишем в заголовок
+  *httpQuery += httpData.length();
+  // две пустые строки в конце
+  *httpQuery += F("\r\n\r\n");
+  // потом - данные
+  *httpQuery += httpData;
+
+  DBGLN(F("HTTP query is:"));
+  DBGLN(*httpQuery);
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

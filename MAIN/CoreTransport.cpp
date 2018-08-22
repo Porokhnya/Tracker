@@ -2,8 +2,6 @@
 #include "Settings.h"
 #include "CONFIG.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
-#ifdef ESP_SUPPORT_ENABLED
-//--------------------------------------------------------------------------------------------------------------------------------------
 #define CIPSEND_COMMAND F("AT+CIPSENDBUF=")
 //--------------------------------------------------------------------------------------------------------------------------------------
 // CoreTransportClient
@@ -66,6 +64,16 @@ bool CoreTransportClient::write(uint8_t* buff, size_t sz)
     if(!sz || !buff || !connected() || socket == NO_CLIENT_ID)
     {
       DBGLN(F("CoreTransportClient - CAN'T WRITE!"));
+      /*
+      if(!connected())
+      {
+        DBGLN(F("NOT CONNECTED!!!"));
+      }
+      if(socket == NO_CLIENT_ID)
+      {
+        DBGLN(F("socket == NO_CLIENT_ID!!!"));        
+      }
+      */
       return false;
     }
 
@@ -293,6 +301,7 @@ CoreESPTransport::CoreESPTransport() : CoreTransport(ESP_MAX_CLIENTS)
   flags.waitCipstartConnect = false;
   cipstartConnectClient = NULL;
   workStream = NULL;
+  failConnectToRouterAttempts = 0;
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
 CoreESPTransport* CoreESPTransport::ActiveInstance()
@@ -368,11 +377,16 @@ void CoreESPTransport::sendCommand(const String& command, bool addNewLine)
 //--------------------------------------------------------------------------------------------------------------------------------------
 bool CoreESPTransport::pingGoogle(bool& result)
 {
-    if(machineState != espIdle || !workStream || !ready() || initCommandsQueue.size()) // чего-то делаем, не могём
+//    if(machineState != espIdle || !workStream || !ready() || initCommandsQueue.size()) // чего-то делаем, не могём
+    if(!workStream || !ready()) // не готовы
     {
       return false;
     }
 
+    // ждём, когда освободится очередь
+    waitForReady();
+
+    
     flags.specialCommandDone = false;
     clearSpecialCommandResults();
     initCommandsQueue.push_back(cmdPING);
@@ -400,10 +414,16 @@ bool CoreESPTransport::pingGoogle(bool& result)
 bool CoreESPTransport::getMAC(String& staMAC, String& apMAC)
 {
 
-    if(machineState != espIdle || !workStream || !ready() || initCommandsQueue.size()) // чего-то делаем, не могём
+    //if(machineState != espIdle || !workStream || !ready() || initCommandsQueue.size()) // чего-то делаем, не могём
+    if(!workStream || !ready()) // не готовы
+    
     {
       return false;
     }
+
+    // ждём, когда освободится очередь
+    waitForReady();
+
 
     staMAC = '-';
     apMAC = '-';    
@@ -453,13 +473,29 @@ bool CoreESPTransport::getMAC(String& staMAC, String& apMAC)
     return true;            
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
+void CoreESPTransport::waitForReady()
+{
+  while(1)
+  {
+    if(machineState == espIdle && !initCommandsQueue.size())
+      break;
+
+    readFromStream();
+    update();
+  }
+}
+//--------------------------------------------------------------------------------------------------------------------------------------
 bool CoreESPTransport::getIP(String& stationCurrentIP, String& apCurrentIP)
 {
 
-    if(machineState != espIdle || !workStream || !ready() || initCommandsQueue.size()) // чего-то делаем, не могём
+    //if(machineState != espIdle || !workStream || !ready() || initCommandsQueue.size()) // чего-то делаем, не могём
+    if(!workStream || !ready()) // не готовы
     {
       return false;
     }
+
+    // ждём, когда освободится очередь
+    waitForReady();
 
     stationCurrentIP = '-';
     apCurrentIP = '-';    
@@ -704,7 +740,7 @@ void CoreESPTransport::processConnect(const String& line)
         // получить один из известных ответов OK, ERROR, ALREADY CONNECTED
         // ДО ТОГО, как придёт статус ID,CONNECT
         cipstartConnectClient->bind(clientID);
-        
+        /*
         if(!flags.cipstartConnectKnownAnswerFound)
         {
 			    DBGLN(F("ESP: WAIT CIPSTART CONNECT, NO OK FOUND!"));
@@ -733,11 +769,12 @@ void CoreESPTransport::processConnect(const String& line)
           CoreTransportClient* client = getClient(clientID);    
           notifyClientConnected(*client,true,CT_ERROR_NONE);          
         }
+        */
       
           flags.waitCipstartConnect = false;
-          cipstartConnectClient = NULL;
-          cipstartConnectClientID = NO_CLIENT_ID;
-          flags.cipstartConnectKnownAnswerFound = false;
+          // cipstartConnectClient = NULL;
+         // cipstartConnectClientID = NO_CLIENT_ID;
+          //flags.cipstartConnectKnownAnswerFound = false;
         
       } // if
       else
@@ -1116,7 +1153,7 @@ void CoreESPTransport::update()
                             flags.waitCipstartConnect = true;
                             cipstartConnectClient = dt.client;
                             cipstartConnectClientID = clientID;
-                            flags.cipstartConnectKnownAnswerFound = false;
+                            //flags.cipstartConnectKnownAnswerFound = false;
       
                             currentCommand = cmdCIPSTART;
                             String comm = F("AT+CIPSTART=");
@@ -1259,18 +1296,25 @@ void CoreESPTransport::update()
                     
                         if(isKnownAnswer(thisCommandLine,knownAnswer))
                         {
+                          /*
                           if(knownAnswer == kaOK || knownAnswer == kaError || knownAnswer == kaAlreadyConnected)
                           {
                             flags.cipstartConnectKnownAnswerFound = true;
                           }
-                            
+                          */
                           if(knownAnswer == kaOK)
                           {
-                            // законнектились удачно, после этого должна придти строка ID,CONNECT
+                            // законнектились удачно, перед этим пришла строка вида 0,CONNECT
                             if(clientsQueue.size())
                             {
                                TransportClientQueueData dt = clientsQueue[0];
-                               removeClientFromQueue(dt.client);                              
+                               CoreTransportClient* thisClient = dt.client;
+                               removeClientFromQueue(thisClient);
+                               thisClient->bind(cipstartConnectClientID);
+                               CoreTransportClient* client = getClient(cipstartConnectClientID);            
+                               notifyClientConnected(*client,true,CT_ERROR_NONE);                               
+                               flags.waitCipstartConnect = false;
+                               cipstartConnectClient = NULL;
                             }
                           }
                           else
@@ -1290,7 +1334,8 @@ void CoreESPTransport::update()
                                // AT+CIPSTART. Это значит, что пока у внешнего клиента нет ID, мы его должны
                                // временно назначить, сообщить клиенту, и освободить этот ID.
                                thisClient->bind(cipstartConnectClientID);                               
-                               notifyClientConnected(*thisClient,false,CT_ERROR_CANT_CONNECT);
+                               CoreTransportClient* client = getClient(cipstartConnectClientID);            
+                               notifyClientConnected(*client,false,CT_ERROR_CANT_CONNECT);
                                thisClient->release();
                             }
 
@@ -1468,8 +1513,11 @@ void CoreESPTransport::update()
                       if(knownAnswer != kaOK)
                       {
                         // ошибка подсоединения к роутеру
-                        DBGLN(F("ESP: CWJAP command FAIL, RESTART!"));
-                        restart();
+                        if(++failConnectToRouterAttempts < WIFI_CONNECT_ATTEMPTS)
+                        {
+                          DBGLN(F("ESP: CWJAP command FAIL, RESTART!"));
+                          restart();
+                        }
                       }
                       else
                       {
@@ -1630,6 +1678,9 @@ void CoreESPTransport::begin()
   workStream = &WIFI_SERIAL;
   WIFI_SERIAL.begin(WIFI_BAUD_RATE);
 
+  // вычитываем старый мусор, т.к. нас могли выключить жёстко
+  while(WIFI_SERIAL.available())
+    WIFI_SERIAL.read();
 
   restart();
 
@@ -1884,4 +1935,4 @@ bool CoreESPTransport::ready()
   return flags.ready && flags.isAnyAnswerReceived; // если мы полностью инициализировали ESP - значит, можем работать
 }
 //--------------------------------------------------------------------------------------------------------------------------------------
-#endif // ESP_SUPPORT_ENABLED
+

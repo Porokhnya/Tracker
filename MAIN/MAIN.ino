@@ -44,6 +44,14 @@ void setup()
   // раскомментировать для отладочной информации !!!
   //while(!Serial);
 
+  // ждём секунду вывода в SerialUSB
+  uint32_t waitM = millis();
+  while(!(millis() - waitM > 1000))
+  {
+    if(Serial)
+      break;
+  }
+
   Wire.begin();
 
   DBGLN(F("Init RTC..."));
@@ -130,12 +138,10 @@ void loop()
   Buttons.update();
   Screen.update();
 
-  #ifdef ESP_SUPPORT_ENABLED
   // обновляем ESP
   CoreESPTransport* esp = CoreESPTransport::ActiveInstance();
   if(esp)
     esp->update();
-  #endif
 
   // проверяем, какой экран активен. Если активен главный экран - сбрасываем таймер ожидания. Иначе - проверяем, не истекло ли время ничегонеделанья.
   AbstractHALScreen* activeScreen = Screen.getActiveScreen();
@@ -183,13 +189,10 @@ void yield()
    // обновляем кнопки   
    Buttons.update();
 
-
-  #ifdef ESP_SUPPORT_ENABLED
   // вычитываем из потока для ESP
   CoreESPTransport* esp = CoreESPTransport::ActiveInstance();
   if(esp)
     esp->readFromStream();
-  #endif    
 
  nestedYield = false;
  

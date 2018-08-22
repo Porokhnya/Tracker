@@ -4,8 +4,6 @@
 #include "TinyVector.h"
 #include "CONFIG.h"
 //--------------------------------------------------------------------------------------------------------------------------------
-#ifdef ESP_SUPPORT_ENABLED
-//--------------------------------------------------------------------------------------------------------------------------------
 // максимальная длина одного пакета к вычитке прежде, чем подписчику придёт уведомление о пакете данных
 #define TRANSPORT_MAX_PACKET_LENGTH 128
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -221,13 +219,13 @@ typedef Vector<uint8_t> TransportReceiveBuffer;
 typedef struct
 {
   bool ready                : 1; // флаг готовности
-  bool connectedToRouter    : 1; // флаг того, что заокннекчены к роутеру
+  bool connectedToRouter    : 1; // флаг того, что законнекчены к роутеру
   bool isAnyAnswerReceived  : 1; // флаг, что мы получили хотя бы один ответ от модема
   bool waitForDataWelcome   : 1; // флаг, что ждём приглашения на отсыл данных
   bool wantReconnect        : 1; // флаг, что мы должны переподсоединиться к роутеру
   bool onIdleTimer          : 1; // флаг, что мы в режиме простоя
   bool waitCipstartConnect  : 1;
-  bool cipstartConnectKnownAnswerFound : 1;
+//  bool cipstartConnectKnownAnswerFound : 1;
 
   bool specialCommandDone : 1;
   bool pad : 7;
@@ -318,6 +316,9 @@ class CoreESPTransport : public CoreTransport
     void restart();
     void readFromStream();
 
+
+    bool isConnectedToRouter() { return flags.connectedToRouter; }
+
   protected:
 
     virtual void beginWrite(CoreTransportClient& client); // начинаем писать в транспорт с клиента
@@ -326,6 +327,9 @@ class CoreESPTransport : public CoreTransport
 
   private:
 
+
+      uint8_t failConnectToRouterAttempts;
+      void waitForReady();
       static uint16_t refsCount;
 
       // буфер для приёма команд от ESP
@@ -374,4 +378,4 @@ class CoreESPTransport : public CoreTransport
     
 };
 //--------------------------------------------------------------------------------------------------------------------------------
-#endif // ESP_SUPPORT_ENABLED
+

@@ -9,6 +9,8 @@
 #include "LinkList.h"
 #include "CONFIG.h"
 #include "CoreButton.h"
+#include "TinyVector.h"
+#include "CoreTransport.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
 {
@@ -36,18 +38,51 @@ typedef struct
   
 } Si7021Data;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-class SettingsClass 
+// передача данных по Wi-Fi
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef enum
+{
+  dataSi7021Temperature,
+  dataSi7021Humidity,
+  dataDoorState,
+  dataADC
+} WiFiReportDataType; // тип данных, отправляемых по Wi-Fi
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef struct
+{
+  WiFiReportDataType dataType; // тип данных
+  DS3231Time checkpoint; // время измерения
+  bool insideBordersFlag; // флаг, что измерения попадают в порог
+  String* formattedData; // форматированная строка с данными показаний
+  
+} WiFiReportItem; // данные, которые надо отослать по Wi-Fi
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef Vector<WiFiReportItem> WiFiReportList; // список показаний к отсылу
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef enum
+{
+  wifiWaitInterval, // ждём наступления интервала до отсыла
+  wifiWaitConnection, // ждём установки соединения с устройством
+  wifiSendData, // отсылаем данные на устройство
+  wifiWaitClientConnected,
+  wifiWaitSendDataDone, // ждём окончания отсыла данных
+  
+} WiFiReportState; // состояние конечного автомата отсыла данных по Wi-Fi
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+class SettingsClass : public IClientEventsSubscriber
 {
   public:
+
+  virtual void OnClientConnect(CoreTransportClient& client, bool connected, int16_t errorCode); // событие "Статус соединения клиента"
+  virtual void OnClientDataWritten(CoreTransportClient& client, int16_t errorCode); // событие "Данные из клиента записаны в поток"
+  virtual void OnClientDataAvailable(CoreTransportClient& client, uint8_t* data, size_t dataSize, bool isDone); // событие "Для клиента поступили данные", флаг - все ли данные приняты
 
     SettingsClass();
 
     void begin();
     void update();
 
-    #ifdef ESP_SUPPORT_ENABLED
-    // работа с ESP
-    
+    // работа с ESP    
     String getStationID();
     void setStationID(const String& val);
     
@@ -65,8 +100,6 @@ class SettingsClass
     // управление питанием ESP
     void espPower(bool bOn);
     
-    #endif // ESP_SUPPORT_ENABLED
-
     // возвращает значение температуры/влажности с датчика Si7021
     Si7021Data readSensor() { return si7021Data; }
 
@@ -127,8 +160,35 @@ class SettingsClass
 
     bool isDoorOpen();
 
+    // Wi-Fi
+    uint32_t getWiFiSendInterval();
+    void setWiFiSendInterval(uint32_t val);
+
     
   private:
+
+    bool isTemperatureInsideBorders();
+    bool isHumidityInsideBorders();
+    bool isADCInsideBorders();
+
+    // Wi-Fi
+    WiFiReportState wifiState; // состояние конечного автомата работы с ESP
+    uint32_t wifiTimer; // таймер, отсчитывающий время какой-либо операции с Wi-Fi
+    uint32_t wifiInterval; // интервал до следующей операции
+    bool startProcessWiFiFlag; // флаг, что надо начать работу с ESP
+    CoreESPTransport* esp; // транспорт
+    size_t itemsInPacket; // кол-во записей, которое попало в текущий пакет данных для отсыла
+    WiFiReportList wifiData; // очередь данных для отсыла
+
+    void pushSensorsDataToWiFiQueue();
+    void sendWiFiDataPacket();
+    String* httpQuery; // строка запроса
+    String remoteIP; // куда коннектимся
+    CoreTransportClient espClient; // клиент транспорта ESP
+    bool anyWriteError;
+    void switchToESPWaitMode();
+    void makeHTTPQuery();
+    void removeSentData();
 
      bool backlightFlag;
 

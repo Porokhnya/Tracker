@@ -61,13 +61,11 @@ class CommandHandlerClass
   bool getUUID(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setLOGTIME(const char* param);
 
-  #ifdef ESP_SUPPORT_ENABLED
   bool getESPSTA(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setESPSTA(CommandParser& parser, Stream* pStream);
   
   bool getESPROUTER(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setESPROUTER(CommandParser& parser, Stream* pStream);
-  #endif // ESP_SUPPORT_ENABLED
 
   bool getBORDERS(const char* commandPassed, const CommandParser& parser, Stream* pStream);
   bool setBORDERS(CommandParser& parser, Stream* pStream);
