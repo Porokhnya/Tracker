@@ -580,9 +580,23 @@ void SettingsClass::logDataToSD()
   dataLine = Logger.formatCSV(dateStr);
   dataLine += COMMA_DELIMITER;
 
+  uint16_t minADCBorder = getMinADCBorder();
+  uint16_t maxADCBorder = getMaxADCBorder();
+
+  String okFlag;
+
+  if(analogSensorValue >= minADCBorder && analogSensorValue <= maxADCBorder)
+    okFlag = "GOOD";
+  else
+    okFlag = "BAD";
+
   // во втором столбце - показания аналогового датчика
   dataLine += Logger.formatCSV(String(analogSensorValue));
   dataLine += COMMA_DELIMITER;
+
+  dataLine += Logger.formatCSV(okFlag);
+  dataLine += COMMA_DELIMITER;
+
 
   // в третьем столбце - температура с Si7021
   String sTemp = String(si7021Data.temperature);
@@ -591,7 +605,28 @@ void SettingsClass::logDataToSD()
     sTemp += '0';
   sTemp += si7021Data.temperatureFract;
   dataLine += Logger.formatCSV(sTemp);
-  dataLine += COMMA_DELIMITER;  
+  dataLine += COMMA_DELIMITER;
+
+  int16_t minTempBorder = getMinTempBorder();
+  minTempBorder *= 100;
+
+  int16_t maxTempBorder = getMaxTempBorder();
+  minTempBorder *= 100;
+
+  int16_t toCompare = si7021Data.temperature;
+  toCompare *= 100;
+  if(toCompare < 0)
+    toCompare -= si7021Data.temperatureFract;
+  else
+    toCompare += si7021Data.temperatureFract;
+
+  if(toCompare >= minTempBorder && toCompare <= maxTempBorder)
+    okFlag = "GOOD";
+  else
+    okFlag = "BAD";  
+
+  dataLine += Logger.formatCSV(okFlag);
+  dataLine += COMMA_DELIMITER;
 
   // в четвертом столбце - влажность с Si7021
   sTemp = String(si7021Data.humidity);
@@ -600,7 +635,26 @@ void SettingsClass::logDataToSD()
     sTemp += '0';
   sTemp += si7021Data.humidityFract;
   dataLine += Logger.formatCSV(sTemp);
-  dataLine += COMMA_DELIMITER;   
+  dataLine += COMMA_DELIMITER;
+
+  uint16_t minHumidityBorder = getMinHumidityBorder();
+  minHumidityBorder *= 100;
+  
+  uint16_t maxHumidityBorder = getMaxHumidityBorder();
+  maxHumidityBorder *= 100;
+
+  uint16_t toCompareHum = si7021Data.humidity;
+  toCompareHum *= 100;
+  toCompareHum += si7021Data.humidityFract;
+
+  if(toCompareHum >= minHumidityBorder && toCompareHum <= maxHumidityBorder)
+    okFlag = "GOOD";
+  else
+    okFlag = "BAD";
+
+  dataLine += Logger.formatCSV(okFlag);
+  dataLine += COMMA_DELIMITER;      
+  
 
   //TODO: ОСТАЛЬНЫЕ ДАННЫЕ ДЛЯ ЛОГА - ЗДЕСЬ !!!
 
