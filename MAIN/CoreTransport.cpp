@@ -847,7 +847,8 @@ void CoreESPTransport::processKnownStatusFromESP(const String& line)
     processDisconnect(line);
    } // if(idx != -1)
    else
-   if(line == F("WIFI CONNECTED"))
+   //if(line == F("WIFI CONNECTED"))
+   if(line == F("WIFI GOT IP"))
    {
       flags.connectedToRouter = true;
       DBGLN(F("ESP: connected to router!"));
