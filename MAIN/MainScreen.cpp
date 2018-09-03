@@ -9,7 +9,7 @@ MainScreen* mainScreen = NULL;
 MainScreen::MainScreen() : AbstractHALScreen("Main")
 {
   mainScreen = this;
-  adcValue = 0;
+  adcValue.value = NO_TEMPERATURE_DATA;
   memset(&lastSensorData,0,sizeof(lastSensorData));
   lastSensorData.temperature = NO_TEMPERATURE_DATA;
   lastSensorData.humidity = NO_TEMPERATURE_DATA;
@@ -74,8 +74,8 @@ void MainScreen::doUpdate(HalDC* hal)
       wantDrawTemp = true;
     }
 
-    uint16_t thisADCVal = Settings.getAnalogSensorValue();
-    if(thisADCVal != adcValue)
+    Temperature thisADCVal = Settings.getAnalogSensorTemperature();
+    if(thisADCVal.value != adcValue.value || thisADCVal.fract != adcValue.fract)
     {
       adcValue = thisADCVal;      
       wantDrawADC = true;
@@ -411,7 +411,7 @@ void MainScreen::doDraw(HalDC* hal)
   
    drawTemperature(hal);
 
-   adcValue = Settings.getAnalogSensorValue();
+   adcValue = Settings.getAnalogSensorTemperature();
    drawADC(hal);
    drawTime(hal);
    drawLogState(hal);

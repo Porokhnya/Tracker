@@ -105,7 +105,7 @@ void SettingsClass::test_key()
 SettingsClass::SettingsClass()
 {
   eeprom = NULL;
-  analogSensorValue = 0;
+  analogSensorTemperature.value = NO_TEMPERATURE_DATA;
   loggingInterval = 60;
   bLoggingEnabled = true;
   bWantToLogFlag = false;
@@ -349,8 +349,13 @@ void SettingsClass::switchLogging(bool bOn)
 
     if(bLoggingEnabled)
     {
+      // создаём новый лог-файл на сегодня
+      Logger.newLogFile();
       // выставляем таймер начала логгирования на текущее значение unixtime
       saveLoggingTimer();
+
+      // записываем 0 как общее время логгирования, карточка "Время подсчета лога должно сбрасываться при открытии нового файла лога, а не считать общее время всех логов."
+      setLoggingDuration(0);
     }
     else
     {
@@ -514,7 +519,7 @@ void SettingsClass::begin()
   // настраиваем будильник часов
   setupDS3231Alarm();
   
-  analogSensorValue = 0;
+  analogSensorTemperature.value = NO_TEMPERATURE_DATA;
   sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
   memset(&si7021Data,0,sizeof(si7021Data));
   
@@ -590,7 +595,11 @@ void SettingsClass::checkPower()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::updateDataFromSensors()
 {
-    analogSensorValue = analogRead(ANALOG_SENSOR_PIN);
+    float rawADC = analogRead(ANALOG_SENSOR_PIN);
+    int32_t adcTemp = 100.0 * (rawADC * ADC_COEFF);
+    analogSensorTemperature.value = adcTemp/100;
+    analogSensorTemperature.fract = abs(adcTemp%100);
+    
 
     float t = si7021.readTemperature()*100.0;
     int32_t iT = t;
@@ -679,7 +688,7 @@ bool SettingsClass::isADCInsideBorders()
 {
   uint16_t minADCBorder = getMinADCBorder();
   uint16_t maxADCBorder = getMaxADCBorder();
-  return (analogSensorValue >= minADCBorder && analogSensorValue <= maxADCBorder);
+  return (analogSensorTemperature.value >= minADCBorder && analogSensorTemperature.value <= maxADCBorder);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::logDataToSD()
@@ -709,7 +718,12 @@ void SettingsClass::logDataToSD()
   }
   
   // во втором столбце - показания аналогового датчика
-  dataLine += Logger.formatCSV(String(analogSensorValue));
+  String sTemp = String(analogSensorTemperature.value);
+  sTemp += DECIMAL_SEPARATOR;
+  if(analogSensorTemperature.fract < 10)
+    sTemp += '0';
+  sTemp += analogSensorTemperature.fract;
+  dataLine += Logger.formatCSV(sTemp);
   dataLine += COMMA_DELIMITER;
 
   dataLine += Logger.formatCSV(okFlag);
@@ -717,7 +731,7 @@ void SettingsClass::logDataToSD()
 
 
   // в третьем столбце - температура с Si7021
-  String sTemp = String(si7021Data.temperature);
+  sTemp = String(si7021Data.temperature);
   sTemp += DECIMAL_SEPARATOR;
   if(si7021Data.temperatureFract < 10)
     sTemp += '0';
@@ -1038,7 +1052,11 @@ void SettingsClass::pushSensorsDataToWiFiQueue()
   adcItem.checkpoint = tm;
   adcItem.insideBordersFlag = isADCInsideBorders();
   adcItem.formattedData = new String();
-  *(adcItem.formattedData) += analogSensorValue;
+  *(adcItem.formattedData) += analogSensorTemperature.value;
+  *(adcItem.formattedData) += DECIMAL_SEPARATOR;
+  if(analogSensorTemperature.fract < 10)
+    *(adcItem.formattedData) += '0';
+  *(adcItem.formattedData) += analogSensorTemperature.fract;
   
   wifiData.push_back(adcItem);
 

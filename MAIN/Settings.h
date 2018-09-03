@@ -38,6 +38,13 @@ typedef struct
   
 } Si7021Data;
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+typedef struct
+{
+  int8_t value;
+  uint8_t fract;
+  
+} Temperature;
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // передача данных по Wi-Fi
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
@@ -104,7 +111,7 @@ class SettingsClass : public IClientEventsSubscriber
     Si7021Data readSensor() { return si7021Data; }
 
     // возвращает значение с аналогового датчика
-    uint16_t getAnalogSensorValue() { return analogSensorValue; }
+    Temperature getAnalogSensorTemperature() { return analogSensorTemperature; }
 
     // управление подсветкой экрана
     void displayBacklight(bool bOn);
@@ -242,7 +249,7 @@ class SettingsClass : public IClientEventsSubscriber
     AT24C64* eeprom;
     DS3231Temperature coreTemp;
     uint32_t sensorsUpdateTimer;
-    uint16_t analogSensorValue;
+    Temperature analogSensorTemperature;
 
     Adafruit_MCP23017 MCP;
     Adafruit_Si7021 si7021;

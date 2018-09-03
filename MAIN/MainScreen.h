@@ -32,7 +32,7 @@ private:
     Si7021Data lastSensorData;
     void drawTemperature(HalDC* hal);
 
-    uint16_t adcValue;
+    Temperature adcValue;
     void drawADC(HalDC* hal);
     
 	  int oldsecond;
