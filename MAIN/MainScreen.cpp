@@ -311,12 +311,14 @@ void MainScreen::drawTemperature(HalDC* hal)
   else // есть температура
   {   
     displayString += lastSensorData.temperature;
+    /*
     displayString += DECIMAL_SEPARATOR;
 
     if(lastSensorData.temperatureFract < 10)
       displayString += '0';
 
     displayString += lastSensorData.temperatureFract;
+    */
     displayString += ';'; // градус
   }
 
@@ -339,12 +341,14 @@ void MainScreen::drawTemperature(HalDC* hal)
   {   
     hasHumidity = true;
     displayString = lastSensorData.humidity;
+    /*
     displayString += DECIMAL_SEPARATOR;
 
     if(lastSensorData.humidityFract < 10)
       displayString += '0';
 
     displayString += lastSensorData.humidityFract;
+    */
     percents = '%';
   }
 

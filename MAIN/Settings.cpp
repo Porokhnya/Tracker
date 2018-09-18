@@ -596,7 +596,7 @@ void SettingsClass::checkPower()
 void SettingsClass::updateDataFromSensors()
 {
     float rawADC = analogRead(ANALOG_SENSOR_PIN);
-    int32_t adcTemp = 100.0 * (rawADC * ADC_COEFF);
+    int32_t adcTemp = 100.0 * ((rawADC * 1.0)/ADC_COEFF);
     analogSensorTemperature.value = adcTemp/100;
     analogSensorTemperature.fract = abs(adcTemp%100);
     
