@@ -354,6 +354,9 @@ void SettingsClass::switchLogging(bool bOn)
       // выставляем таймер начала логгирования на текущее значение unixtime
       saveLoggingTimer();
 
+      // сбрасываем кол-во измерений за сессию
+      resetSessionMeasures();      
+
       // записываем 0 как общее время логгирования, карточка "Время подсчета лога должно сбрасываться при открытии нового файла лога, а не считать общее время всех логов."
       setLoggingDuration(0);
     }
@@ -449,9 +452,7 @@ void SettingsClass::setWiFiSendInterval(uint32_t val)
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::begin()
 {
-
- 
-
+  
   // подключаем MCP на адрес 1
   MCP.begin(1);
 
@@ -782,6 +783,9 @@ void SettingsClass::logDataToSD()
 
   // увеличиваем кол-во измерений всего
   incTotalMeasures();
+
+  // увеличиваем кол-во измерений за сессию
+  incSessionMeasures();
     
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1016,7 +1020,22 @@ void SettingsClass::update()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::pushSensorsDataToWiFiQueue()
 {
+
+  while(wifiData.size() > MAX_WIFI_LIST_RECORDS)
+  {
+    // удаляем старые записи
+    WiFiReportItem ri = wifiData[0];
+    delete ri.formattedData;
+    
+    for(size_t i=1;i<wifiData.size();i++)
+    {
+      wifiData[i-1] = wifiData[i];
+    }
+    wifiData.pop();
+  }
+  
   DS3231Time tm = RealtimeClock.getTime();
+
 
   // помещаем в очередь показания температуры
   WiFiReportItem temperatureItem;
@@ -1342,6 +1361,23 @@ uint16_t SettingsClass::getMaxADCBorder()
 void SettingsClass::setMaxADCBorder(uint16_t val)
 {
   write16(ADC_MAX_BORDER_ADDRESS,val);  
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+uint32_t SettingsClass::getSessionMeasures()
+{
+  return read32(SESSION_MEASURES_ADDRESS);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::incSessionMeasures()
+{
+  uint32_t val = getSessionMeasures();
+  val++;
+  write32(SESSION_MEASURES_ADDRESS,val);
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void SettingsClass::resetSessionMeasures()
+{
+  write32(SESSION_MEASURES_ADDRESS,0);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 uint32_t SettingsClass::getTotalMeasures()

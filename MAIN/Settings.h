@@ -143,6 +143,13 @@ class SettingsClass : public IClientEventsSubscriber
 
     // увеличивает кол-во измерений всего на единицу
     void incTotalMeasures();
+
+    // возвращает кол-во измерений за сессию
+    uint32_t getSessionMeasures();
+    // увеличивает кол-во измерений за сессию на единицу
+    void incSessionMeasures();
+    // сбрасывает кол-во измерений за сессию
+    void resetSessionMeasures();
     
 
     // включено ли логгирование?
