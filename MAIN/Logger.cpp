@@ -65,7 +65,50 @@ void LoggerClass::newLogFile()
 
   todayLogFileNumber++;
 
-  Settings.setLoggerLogFileNumber(todayLogFileNumber);    
+  Settings.setLoggerLogFileNumber(todayLogFileNumber); 
+
+ if(!openWorkFile())
+    return;
+
+  // - ФИО водителя (70 символов макс)
+  String dt;
+  dt += '#'; // служебный символ, говорящий о том, что строка - служебный заголовок
+  dt += formatCSV(Settings.getDriver());
+  dt += COMMA_DELIMITER;
+  workFile.write((const uint8_t*)dt.c_str(),dt.length());
+
+  // - Гос. номер ТС (10 символов макс)
+  dt = formatCSV(Settings.getVehicleNumber());
+  dt += COMMA_DELIMITER;
+  workFile.write((const uint8_t*)dt.c_str(),dt.length());
+
+  // - Гос. номер прицепа (10 символов макс)
+  dt = formatCSV(Settings.getTrailerNumber());
+  dt += COMMA_DELIMITER;
+  workFile.write((const uint8_t*)dt.c_str(),dt.length());
+
+  // - Интервал измерений (в мин)
+  dt = Settings.getLoggingInterval();
+  dt += COMMA_DELIMITER;
+  workFile.write((const uint8_t*)dt.c_str(),dt.length());
+
+  /*
+    - Битовая маска датчиков (какие датчики активированы в данной сессии - 1 байт):
+    бит 0 - внутренний датчик температуры
+    бит 1 - датчик влажности
+    бит 2 - внешний датчик температуры
+    бит 3 - датчик открытия двери   
+   */
+
+   uint8_t bitmask = 1 | 2 | 4 | 8;
+   dt = bitmask;
+  workFile.write((const uint8_t*)dt.c_str(),dt.length());
+
+
+  dt = NEWLINE;
+  workFile.write((const uint8_t*)dt.c_str(),dt.length());
+
+  closeWorkFile();    
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -150,6 +150,15 @@ class SettingsClass : public IClientEventsSubscriber
     void incSessionMeasures();
     // сбрасывает кол-во измерений за сессию
     void resetSessionMeasures();
+
+    // возвращает ФИО водителя
+    String getDriver();
+
+    // возвращает гос. номер ТС
+    String getVehicleNumber();
+
+    // возвращает гос. номер прицепа
+    String getTrailerNumber();
     
 
     // включено ли логгирование?
