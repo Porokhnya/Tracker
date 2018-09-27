@@ -11,6 +11,7 @@
 #include "CoreButton.h"
 #include "TinyVector.h"
 #include "CoreTransport.h"
+#include "DS18B20Query.h"
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 typedef enum
 {
@@ -111,7 +112,7 @@ class SettingsClass : public IClientEventsSubscriber
     Si7021Data readSensor() { return si7021Data; }
 
     // возвращает значение с аналогового датчика
-    Temperature getAnalogSensorTemperature() { return analogSensorTemperature; }
+    Temperature getDS18B20SensorTemperature() { return dsSensorTemperature; }
 
     // управление подсветкой экрана
     void displayBacklight(bool bOn);
@@ -265,7 +266,9 @@ class SettingsClass : public IClientEventsSubscriber
     AT24C64* eeprom;
     DS3231Temperature coreTemp;
     uint32_t sensorsUpdateTimer;
-    Temperature analogSensorTemperature;
+    //Temperature analogSensorTemperature;
+    DS18B20Support ds18b20;
+    Temperature dsSensorTemperature;
 
     Adafruit_MCP23017 MCP;
     Adafruit_Si7021 si7021;

@@ -9,7 +9,7 @@ MainScreen* mainScreen = NULL;
 MainScreen::MainScreen() : AbstractHALScreen("Main")
 {
   mainScreen = this;
-  adcValue.value = NO_TEMPERATURE_DATA;
+  ds18b20Value.value = NO_TEMPERATURE_DATA;
   memset(&lastSensorData,0,sizeof(lastSensorData));
   lastSensorData.temperature = NO_TEMPERATURE_DATA;
   lastSensorData.humidity = NO_TEMPERATURE_DATA;
@@ -60,7 +60,7 @@ void MainScreen::doUpdate(HalDC* hal)
       
 	// обновление экрана
   static uint32_t tempUpdateTimer = 0;
-  bool wantDrawTemp = false, wantDrawADC = false, wantDrawTime = false, wantDrawDoorState = false;
+  bool wantDrawTemp = false, wantDrawDS18B20 = false, wantDrawTime = false, wantDrawDoorState = false;
     
   if(millis() - tempUpdateTimer > SENSORS_UPDATE_FREQUENCY)
   {
@@ -74,11 +74,11 @@ void MainScreen::doUpdate(HalDC* hal)
       wantDrawTemp = true;
     }
 
-    Temperature thisADCVal = Settings.getAnalogSensorTemperature();
-    if(thisADCVal.value != adcValue.value || thisADCVal.fract != adcValue.fract)
+    Temperature thisDS18B20Val = Settings.getDS18B20SensorTemperature();
+    if(thisDS18B20Val.value != ds18b20Value.value || thisDS18B20Val.fract != ds18b20Value.fract)
     {
-      adcValue = thisADCVal;      
-      wantDrawADC = true;
+      ds18b20Value = thisDS18B20Val;      
+      wantDrawDS18B20 = true;
     }
 	
   } // if(millis() - ....
@@ -138,12 +138,12 @@ void MainScreen::doUpdate(HalDC* hal)
   }
   
 
-  if(wantDrawTemp || wantDrawADC || wantDrawTime || wantDrawLogState || wantDrawDoorState)
+  if(wantDrawTemp || wantDrawDS18B20 || wantDrawTime || wantDrawLogState || wantDrawDoorState)
   {
     hal->clearScreen();
     
     drawTemperature(hal);
-    drawADC(hal);
+    drawDS18B20(hal);
     drawTime(hal);
     drawLogState(hal);
 
@@ -195,7 +195,7 @@ void MainScreen::drawLogDuration(HalDC* hal)
   
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void MainScreen::drawADC(HalDC* hal)
+void MainScreen::drawDS18B20(HalDC* hal)
 {  
   // отрисовка показаний ADC
   /*
@@ -415,8 +415,8 @@ void MainScreen::doDraw(HalDC* hal)
   
    drawTemperature(hal);
 
-   adcValue = Settings.getAnalogSensorTemperature();
-   drawADC(hal);
+   ds18b20Value = Settings.getDS18B20SensorTemperature();
+   drawDS18B20(hal);
    drawTime(hal);
    drawLogState(hal);
    drawLogDuration(hal);

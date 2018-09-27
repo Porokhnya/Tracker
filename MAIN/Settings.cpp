@@ -105,7 +105,7 @@ void SettingsClass::test_key()
 SettingsClass::SettingsClass()
 {
   eeprom = NULL;
-  analogSensorTemperature.value = NO_TEMPERATURE_DATA;
+  dsSensorTemperature.value = NO_TEMPERATURE_DATA;
   loggingInterval = 60;
   bLoggingEnabled = true;
   bWantToLogFlag = false;
@@ -519,8 +519,13 @@ void SettingsClass::begin()
 
   // настраиваем будильник часов
   setupDS3231Alarm();
+
+  ds18b20.begin(DS18B20_SENSOR_PIN);
+  ds18b20.setResolution(temp12bit);
+  DS18B20Temperature t;
+  ds18b20.readTemperature(&t,0);
+  dsSensorTemperature.value = NO_TEMPERATURE_DATA;
   
-  analogSensorTemperature.value = NO_TEMPERATURE_DATA;
   sensorsUpdateTimer = millis() + SENSORS_UPDATE_FREQUENCY;
   memset(&si7021Data,0,sizeof(si7021Data));
   
@@ -596,11 +601,19 @@ void SettingsClass::checkPower()
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::updateDataFromSensors()
 {
+  /*
     float rawADC = analogRead(ANALOG_SENSOR_PIN);
     int32_t adcTemp = 100.0 * ((rawADC * 1.0)/ADC_COEFF);
     analogSensorTemperature.value = adcTemp/100;
     analogSensorTemperature.fract = abs(adcTemp%100);
-    
+    */
+    DS18B20Temperature dsT;
+    dsSensorTemperature.value = NO_TEMPERATURE_DATA;
+    if(ds18b20.readTemperature(&dsT,0))
+    {
+      dsSensorTemperature.value = dsT.Whole;
+      dsSensorTemperature.fract = dsT.Fract;
+    }
 
     float t = si7021.readTemperature()*100.0;
     int32_t iT = t;
@@ -689,7 +702,7 @@ bool SettingsClass::isADCInsideBorders()
 {
   uint16_t minADCBorder = getMinADCBorder();
   uint16_t maxADCBorder = getMaxADCBorder();
-  return (analogSensorTemperature.value >= minADCBorder && analogSensorTemperature.value <= maxADCBorder);
+  return (dsSensorTemperature.value >= minADCBorder && dsSensorTemperature.value <= maxADCBorder);
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SettingsClass::logDataToSD()
@@ -719,11 +732,11 @@ void SettingsClass::logDataToSD()
   }
   
   // во втором столбце - показания аналогового датчика
-  String sTemp = String(analogSensorTemperature.value);
+  String sTemp = String(dsSensorTemperature.value);
   sTemp += DECIMAL_SEPARATOR;
-  if(analogSensorTemperature.fract < 10)
+  if(dsSensorTemperature.fract < 10)
     sTemp += '0';
-  sTemp += analogSensorTemperature.fract;
+  sTemp += dsSensorTemperature.fract;
   dataLine += Logger.formatCSV(sTemp);
   dataLine += COMMA_DELIMITER;
 
@@ -1065,17 +1078,17 @@ void SettingsClass::pushSensorsDataToWiFiQueue()
 
   wifiData.push_back(humidityItem);
 
-  // помещаем в очередь показания АЦП
+  // помещаем в очередь показания DS18B20
   WiFiReportItem adcItem;
   adcItem.dataType = dataADC;
   adcItem.checkpoint = tm;
   adcItem.insideBordersFlag = isADCInsideBorders();
   adcItem.formattedData = new String();
-  *(adcItem.formattedData) += analogSensorTemperature.value;
+  *(adcItem.formattedData) += dsSensorTemperature.value;
   *(adcItem.formattedData) += DECIMAL_SEPARATOR;
-  if(analogSensorTemperature.fract < 10)
+  if(dsSensorTemperature.fract < 10)
     *(adcItem.formattedData) += '0';
-  *(adcItem.formattedData) += analogSensorTemperature.fract;
+  *(adcItem.formattedData) += dsSensorTemperature.fract;
   
   wifiData.push_back(adcItem);
 
