@@ -33,7 +33,7 @@ class Button
   
     Button();
 
-    void begin(uint8_t _pin, bool _pullup=true); // _pullup == false - подтяжка к земле, иначе - подтяжка к питанию
+    void begin(uint8_t _pin, bool _pullup=true, uint16_t retentionInterval = RETENTION_INTERVAL); // _pullup == false - подтяжка к земле, иначе - подтяжка к питанию
     void update(); // обновляем внутреннее состояние
     void reset(); // сбрасываем состояние на неизменившееся
     
@@ -49,6 +49,7 @@ class Button
   bool pullUp;
   
   uint32_t lastMillis;
+  uint16_t retentionInterval;
 
   ButtonState state;
 

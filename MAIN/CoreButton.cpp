@@ -9,7 +9,7 @@ Button::Button()
   reset();
 }
 //--------------------------------------------------------------------------------------------------
-void Button::begin(uint8_t _pin, bool _pullup)
+void Button::begin(uint8_t _pin, bool _pullup, uint16_t _retentionInterval)
 {
    buttonPin = _pin;
    pullUp = _pullup;
@@ -18,6 +18,8 @@ void Button::begin(uint8_t _pin, bool _pullup)
     pinMode(buttonPin, INPUT_PULLUP); // подтягиваем к питанию, если попросили
   else
     pinMode(buttonPin, INPUT);
+
+  retentionInterval = _retentionInterval;
 
   reset();
 }
@@ -118,7 +120,7 @@ void Button::update()
 
   }
 
-  if (millisDelta > RETENTION_INTERVAL) // пора проверять удержание
+  if (millisDelta > retentionInterval) // пора проверять удержание
     curRetention = true;
 
   if (curRetention != state.lastRetention) // если состояние изменилось
