@@ -1,5 +1,6 @@
 #include "DS18B20Query.h"
-#include <OneWire.h>
+#include <OneWire_TRACKER>
+//#include <OneWire.h>
 #include "Settings.h"
 //--------------------------------------------------------------------------------------------------------------------------------------
 void DS18B20Support::begin(uint8_t _pin) 
